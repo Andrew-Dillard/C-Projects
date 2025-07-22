@@ -1,6 +1,8 @@
 // Tic Tac Toe game with single and two player modes
 // Fun fact: There are 255,168 possible games of Tic Tac Toe!
 
+// this is a git test 7/21/25
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
