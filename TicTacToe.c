@@ -1,8 +1,6 @@
 // Tic Tac Toe game with single and two player modes
 // Fun fact: There are 255,168 possible games of Tic Tac Toe!
 
-// this is another git test 7/21/25
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +9,8 @@ char choice_XorO;
 char position_one = ' ', position_two = ' ', position_three = ' ', position_four = ' ', position_five = ' ', position_six = ' ', position_seven = ' ', position_eight = ' ', position_nine = ' ';
 int invalid_entry_count = 0;
 
-void moveX(char);                           // applies X's
-void moveO(char);                           // applies O's
+void move_X(char);                          // applies X's
+void move_O(char);                          // applies O's
 void new_board();                           // shows updated game
 char default_mode();                        // computer's default mode of playing like you read a book
 int win_check();                            // checks to see if either side has won
@@ -87,7 +85,7 @@ int main()
         if (choice_XorO == '2') //  computer's first move if it is X's
         {
             computer_move_one = '5';
-            moveX(computer_move_one);
+            move_X(computer_move_one);
             new_board();
         }
 
@@ -123,9 +121,9 @@ int main()
             return 0;
         }
         if (choice_XorO == '1')
-            moveX(player_move_one);
+            move_X(player_move_one);
         else if (choice_XorO == '2')
-            moveO(player_move_one);
+            move_O(player_move_one);
         new_board();
 
         if (choice_XorO == '1')
@@ -141,10 +139,10 @@ int main()
                 computer_move_two = '9';
             else
                 computer_move_two = default_mode();
-            moveX(computer_move_two);
+            move_X(computer_move_two);
         }
         else if (choice_XorO == '1')
-            moveO(computer_move_two);
+            move_O(computer_move_two);
         new_board();
         if (win_check() == 2)
         {
@@ -190,9 +188,9 @@ int main()
             return 0;
         }
         if (choice_XorO == '1')
-            moveX(player_move_two);
+            move_X(player_move_two);
         else if (choice_XorO == '2')
-            moveO(player_move_two);
+            move_O(player_move_two);
         new_board();
 
         computer_move_three = find_third_X(); //  computer move 3 if X's and move 2 if O's
@@ -277,9 +275,9 @@ int main()
         if (computer_move_three == '0')
             computer_move_three = default_mode();
         if (choice_XorO == '2')
-            moveX(computer_move_three);
+            move_X(computer_move_three);
         else if (choice_XorO == '1')
-            moveO(computer_move_three);
+            move_O(computer_move_three);
         new_board();
         if (kill_prog() == 1)
             return 0;
@@ -321,9 +319,9 @@ int main()
             return 0;
         }
         if (choice_XorO == '1')
-            moveX(player_move_three);
+            move_X(player_move_three);
         else if (choice_XorO == '2')
-            moveO(player_move_three);
+            move_O(player_move_three);
         new_board();
         if (kill_prog() == 1)
             return 0;
@@ -337,7 +335,7 @@ int main()
                 computer_move_four = '7';
             if (computer_move_four == '0')
                 computer_move_four = default_mode();
-            moveO(computer_move_four);
+            move_O(computer_move_four);
         }
         if (choice_XorO == '2')
         {
@@ -346,7 +344,7 @@ int main()
                 computer_move_four = find_third_O();
             if (computer_move_four == '0')
                 computer_move_four = default_mode();
-            moveX(computer_move_four);
+            move_X(computer_move_four);
         }
         new_board();
         if (kill_prog() == 1)
@@ -382,9 +380,9 @@ int main()
             return 0;
         }
         if (choice_XorO == '1')
-            moveX(player_move_four);
+            move_X(player_move_four);
         else if (choice_XorO == '2')
-            moveO(player_move_four);
+            move_O(player_move_four);
         new_board();
         if (kill_prog() == 1)
             return 0;
@@ -396,7 +394,7 @@ int main()
                 computer_move_five = find_third_X();
             if (computer_move_five == '0')
                 computer_move_five = default_mode();
-            moveO(computer_move_five);
+            move_O(computer_move_five);
         }
         if (choice_XorO == '2')
         {
@@ -405,7 +403,7 @@ int main()
                 computer_move_five = find_third_O();
             if (computer_move_five == '0')
                 computer_move_five = default_mode();
-            moveX(computer_move_five);
+            move_X(computer_move_five);
         }
         new_board();
         if (kill_prog() == 1)
@@ -457,9 +455,9 @@ int main()
             return 0;
         }
         if (choice_XorO == '1')
-            moveX(player_move_five);
+            move_X(player_move_five);
         else if (choice_XorO == '2')
-            moveO(player_move_five);
+            move_O(player_move_five);
         new_board();
         if (kill_prog() == 1)
             return 0;
@@ -473,8 +471,8 @@ int main()
     duplicate_entry_count = 0;
     char P1mv1[255], P1mv2[255], P1mv3[255], P1mv4[255], P1mv5[255];
     char P2mv1[255], P2mv2[255], P2mv3[255], P2mv4[255];
-    char p1_mv1, p1_mv2, p1_mv3, p1_mv4, p1_mv5;
-    char p2_mv1, p2_mv2, p2_mv3, p2_mv4;
+    char player_one_move_one, player_one_move_two, player_one_move_three, player_one_move_four, player_one_move_five;
+    char player_two_move_one, player_two_move_two, player_two_move_three, player_two_move_four;
     printf("\nWelcome to two player mode. \n");
     printf("\nPlayer 1 will be X's and Player 2 will be O's. \n");
     printf("\nPlease use above diagram to enter your moves.\n");
@@ -493,9 +491,9 @@ int main()
         return 0;
     }
     else
-        p1_mv1 = *P1mv1;
+        player_one_move_one = *P1mv1;
 
-    moveX(p1_mv1);
+    move_X(player_one_move_one);
     new_board();
 
     printf("\nEnter move Player 2: "); // Player 2 move 1
@@ -506,9 +504,9 @@ int main()
         return 0;
     }
     else
-        p2_mv1 = *P2mv1;
+        player_two_move_one = *P2mv1;
 
-    for (int S = 0; p2_mv1 == p1_mv1 && S < 2; S++)
+    for (int S = 0; player_two_move_one == player_one_move_one && S < 2; S++)
     {
         duplicate_entry_count++;
         if (duplicate_entry_count >= 3)
@@ -521,10 +519,10 @@ int main()
             return 0;
         }
         else
-            p2_mv1 = *P2mv1;
+            player_two_move_one = *P2mv1;
     }
 
-    moveO(p2_mv1);
+    move_O(player_two_move_one);
     new_board();
 
     printf("\nEnter move Player 1: "); // Player 1 move 2
@@ -535,8 +533,8 @@ int main()
         return 0;
     }
     else
-        p1_mv2 = *P1mv2;
-    for (int T = 0; (p1_mv2 == p1_mv1 || p1_mv2 == p2_mv1) && T < 2; T++)
+        player_one_move_two = *P1mv2;
+    for (int T = 0; (player_one_move_two == player_one_move_one || player_one_move_two == player_two_move_one) && T < 2; T++)
     {
         duplicate_entry_count++;
         if (duplicate_entry_count >= 3)
@@ -549,14 +547,14 @@ int main()
             return 0;
         }
         else
-            p1_mv2 = *P1mv2;
+            player_one_move_two = *P1mv2;
     }
-    if (p1_mv2 == p1_mv1 || p1_mv2 == p2_mv1)
+    if (player_one_move_two == player_one_move_one || player_one_move_two == player_two_move_one)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveX(p1_mv2);
+    move_X(player_one_move_two);
     new_board();
 
     printf("\n 1 | 2 | 3 \n");
@@ -574,9 +572,9 @@ int main()
         return 0;
     }
     else
-        p2_mv2 = *P2mv2;
+        player_two_move_two = *P2mv2;
 
-    for (int U = 0; (p2_mv2 == p1_mv1 || p2_mv2 == p1_mv2 || p2_mv2 == p2_mv1) && U < 2; U++)
+    for (int U = 0; (player_two_move_two == player_one_move_one || player_two_move_two == player_one_move_two || player_two_move_two == player_two_move_one) && U < 2; U++)
     {
         duplicate_entry_count++;
         if (duplicate_entry_count >= 3)
@@ -589,14 +587,14 @@ int main()
             return 0;
         }
         else
-            p2_mv2 = *P2mv2;
+            player_two_move_two = *P2mv2;
     }
-    if (p2_mv2 == p1_mv1 || p2_mv2 == p1_mv2 || p2_mv2 == p2_mv1)
+    if (player_two_move_two == player_one_move_one || player_two_move_two == player_one_move_two || player_two_move_two == player_two_move_one)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveO(p2_mv2);
+    move_O(player_two_move_two);
     new_board();
 
     printf("\nEnter move Player 1: "); // Player 1 move 3
@@ -607,8 +605,8 @@ int main()
         return 0;
     }
     else
-        p1_mv3 = *P1mv3;
-    for (int V = 0; (p1_mv3 == p1_mv1 || p1_mv3 == p1_mv2 || p1_mv3 == p2_mv1 || p1_mv3 == p2_mv2) && V < 2; V++)
+        player_one_move_three = *P1mv3;
+    for (int V = 0; (player_one_move_three == player_one_move_one || player_one_move_three == player_one_move_two || player_one_move_three == player_two_move_one || player_one_move_three == player_two_move_two) && V < 2; V++)
     {
         duplicate_entry_count++;
         if (duplicate_entry_count >= 3)
@@ -621,14 +619,14 @@ int main()
             return 0;
         }
         else
-            p1_mv3 = *P1mv3;
+            player_one_move_three = *P1mv3;
     }
-    if (p1_mv3 == p1_mv1 || p1_mv3 == p1_mv2 || p1_mv3 == p2_mv1 || p1_mv3 == p2_mv2)
+    if (player_one_move_three == player_one_move_one || player_one_move_three == player_one_move_two || player_one_move_three == player_two_move_one || player_one_move_three == player_two_move_two)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveX(p1_mv3);
+    move_X(player_one_move_three);
     new_board();
     if (win_check() == 1)
     {
@@ -644,10 +642,10 @@ int main()
         return 0;
     }
     else
-        p2_mv3 = *P2mv3;
+        player_two_move_three = *P2mv3;
 
-    for (int W = 0; (p2_mv3 == p1_mv1 || p2_mv3 == p1_mv2 || p2_mv3 == p1_mv3 ||
-                     p2_mv3 == p2_mv1 || p2_mv3 == p2_mv2) &&
+    for (int W = 0; (player_two_move_three == player_one_move_one || player_two_move_three == player_one_move_two || player_two_move_three == player_one_move_three ||
+                     player_two_move_three == player_two_move_one || player_two_move_three == player_two_move_two) &&
                     W < 2;
          W++)
     {
@@ -662,15 +660,15 @@ int main()
             return 0;
         }
         else
-            p2_mv3 = *P2mv3;
+            player_two_move_three = *P2mv3;
     }
-    if (p2_mv3 == p1_mv1 || p2_mv3 == p1_mv2 || p2_mv3 == p1_mv3 ||
-        p2_mv3 == p2_mv1 || p2_mv3 == p2_mv2)
+    if (player_two_move_three == player_one_move_one || player_two_move_three == player_one_move_two || player_two_move_three == player_one_move_three ||
+        player_two_move_three == player_two_move_one || player_two_move_three == player_two_move_two)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveO(p2_mv3);
+    move_O(player_two_move_three);
     new_board();
     if (win_check() == 2)
     {
@@ -693,9 +691,9 @@ int main()
         return 0;
     }
     else
-        p1_mv4 = *P1mv4;
-    for (int X = 0; (p1_mv4 == p1_mv1 || p1_mv4 == p1_mv2 || p1_mv4 == p2_mv3 ||
-                     p1_mv4 == p2_mv1 || p1_mv4 == p2_mv2 || p1_mv4 == p2_mv3) &&
+        player_one_move_four = *P1mv4;
+    for (int X = 0; (player_one_move_four == player_one_move_one || player_one_move_four == player_one_move_two || player_one_move_four == player_two_move_three ||
+                     player_one_move_four == player_two_move_one || player_one_move_four == player_two_move_two || player_one_move_four == player_two_move_three) &&
                     X < 2;
          X++)
     {
@@ -710,15 +708,15 @@ int main()
             return 0;
         }
         else
-            p1_mv4 = *P1mv4;
+            player_one_move_four = *P1mv4;
     }
-    if (p1_mv4 == p1_mv1 || p1_mv4 == p1_mv2 || p1_mv4 == p2_mv3 ||
-        p1_mv4 == p2_mv1 || p1_mv4 == p2_mv2 || p1_mv4 == p2_mv3)
+    if (player_one_move_four == player_one_move_one || player_one_move_four == player_one_move_two || player_one_move_four == player_two_move_three ||
+        player_one_move_four == player_two_move_one || player_one_move_four == player_two_move_two || player_one_move_four == player_two_move_three)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveX(p1_mv4);
+    move_X(player_one_move_four);
     new_board();
     if (win_check() == 1)
     {
@@ -734,10 +732,10 @@ int main()
         return 0;
     }
     else
-        p2_mv4 = *P2mv4;
+        player_two_move_four = *P2mv4;
 
-    for (int Y = 0; (p2_mv4 == p1_mv1 || p2_mv4 == p1_mv2 || p2_mv4 == p1_mv3 || p2_mv4 == p1_mv4 ||
-                     p2_mv4 == p2_mv1 || p2_mv4 == p2_mv2 || p2_mv4 == p2_mv3) &&
+    for (int Y = 0; (player_two_move_four == player_one_move_one || player_two_move_four == player_one_move_two || player_two_move_four == player_one_move_three || player_two_move_four == player_one_move_four ||
+                     player_two_move_four == player_two_move_one || player_two_move_four == player_two_move_two || player_two_move_four == player_two_move_three) &&
                     Y < 2;
          Y++)
     {
@@ -752,15 +750,15 @@ int main()
             return 0;
         }
         else
-            p2_mv4 = *P2mv4;
+            player_two_move_four = *P2mv4;
     }
-    if (p2_mv4 == p1_mv1 || p2_mv4 == p1_mv2 || p2_mv4 == p1_mv3 || p2_mv4 == p1_mv4 ||
-        p2_mv4 == p2_mv1 || p2_mv4 == p2_mv2 || p2_mv4 == p2_mv3)
+    if (player_two_move_four == player_one_move_one || player_two_move_four == player_one_move_two || player_two_move_four == player_one_move_three || player_two_move_four == player_one_move_four ||
+        player_two_move_four == player_two_move_one || player_two_move_four == player_two_move_two || player_two_move_four == player_two_move_three)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveO(p2_mv4);
+    move_O(player_two_move_four);
     new_board();
     if (win_check() == 2)
     {
@@ -776,9 +774,9 @@ int main()
         return 0;
     }
     else
-        p1_mv5 = *P1mv5;
-    for (int Z = 0; (p1_mv5 == p1_mv1 || p1_mv5 == p1_mv2 || p1_mv5 == p1_mv3 || p1_mv5 == p1_mv4 ||
-                     p1_mv5 == p2_mv1 || p1_mv5 == p2_mv2 || p1_mv5 == p2_mv3 || p1_mv5 == p2_mv4) &&
+        player_one_move_five = *P1mv5;
+    for (int Z = 0; (player_one_move_five == player_one_move_one || player_one_move_five == player_one_move_two || player_one_move_five == player_one_move_three || player_one_move_five == player_one_move_four ||
+                     player_one_move_five == player_two_move_one || player_one_move_five == player_two_move_two || player_one_move_five == player_two_move_three || player_one_move_five == player_two_move_four) &&
                     Z < 2;
          Z++)
     {
@@ -793,15 +791,15 @@ int main()
             return 0;
         }
         else
-            p1_mv5 = *P1mv5;
+            player_one_move_five = *P1mv5;
     }
-    if (p1_mv5 == p1_mv1 || p1_mv5 == p1_mv2 || p1_mv5 == p1_mv3 || p1_mv5 == p1_mv4 ||
-        p1_mv5 == p2_mv1 || p1_mv5 == p2_mv2 || p1_mv5 == p2_mv3 || p1_mv5 == p2_mv4)
+    if (player_one_move_five == player_one_move_one || player_one_move_five == player_one_move_two || player_one_move_five == player_one_move_three || player_one_move_five == player_one_move_four ||
+        player_one_move_five == player_two_move_one || player_one_move_five == player_two_move_two || player_one_move_five == player_two_move_three || player_one_move_five == player_two_move_four)
     {
         printf("\nYou had your chance. Program terminated. \n");
         return 0;
     }
-    moveX(p1_mv5);
+    move_X(player_one_move_five);
     new_board();
     if (win_check() == 1)
     {
@@ -846,7 +844,7 @@ void new_board()
     printf(" %c | %c | %c \n", position_seven, position_eight, position_nine);
     printf("   |   |   \n");
 }
-void moveX(char m)
+void move_X(char m)
 {
     if (m == '1')
         position_one = 'X';
@@ -867,7 +865,7 @@ void moveX(char m)
     if (m == '9')
         position_nine = 'X';
 }
-void moveO(char m)
+void move_O(char m)
 {
     if (m == '1')
         position_one = 'O';
@@ -909,6 +907,8 @@ char default_mode()
     if (position_nine == ' ')
         return '9';
 }
+
+// function returns 1 if X's have won and returns 2 if O's have won
 int win_check()
 {
     if ((position_one == 'X') && (position_two == 'X') && (position_three == 'X'))
@@ -943,6 +943,7 @@ int win_check()
         return 2;
     if ((position_seven == 'O') && (position_five == 'O') && (position_three == 'O'))
         return 2;
+    return 0;
 }
 int kill_prog()
 {
@@ -972,6 +973,7 @@ int kill_prog()
             return 1;
         }
     }
+    return 0;
 }
 char find_third_O()
 {
