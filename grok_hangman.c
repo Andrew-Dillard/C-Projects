@@ -8,12 +8,28 @@
 // define constant for maximum number of incorrect guesses allowed
 #define MAX_NUM_INCORRECT_GUESSES 6
 
-// the word list for the game, define array whose elements are pointers, containing the memory address of the first character in each string
-const char *words[] = {
+// define different categories for the player to choose a word from. these are arrays of pointers. each pointer points to the first letter of its corresponding word
+const char *bible_names[] = {
     "adam", "eve", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron", "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus"};
 
-// stores number of elements in the words[] array
-int num_words = sizeof(words) / sizeof(words[0]);
+const char *animals[] = {
+    "tiger", "elephant", "giraffe", "zebra", "lion", "bear", "wolf", "fox", "deer", "rhino",
+    "hippo", "cheetah", "panther", "eagle", "hawk", "owl", "snake", "turtle", "crocodile", "lemur"};
+
+const char *toys[] = {"doll", "truck", "puzzle", "ball", "kite", "train", "blocks", "robot", "teddy", "car", "boat", "plane", "marble", "lego", "frisbee", "scooter", "wagon", "rocket"};
+
+const char *plants[] = {"tree", "flower", "grass", "bush", "cactus", "vine", "rose", "tulip", "daisy", "lily", "fern", "moss", "bamboo", "pine", "oak", "maple", "clover", "ivy", "sunflower"};
+
+const char *megaman[] = {
+    "megaman", "roll", "gutsman", "freezeman", "cutman", "shadowman", "elecman", "torchman",
+    "protoman", "bass", "glide", "lan", "higsby", "yai", "dex", "mayl", "chaud",
+    "wily", "chip", "netbattle"};
+
+const char *star_wars[] = {
+    "luke", "leia", "han", "vader", "yoda", "obiwan", "chewbacca", "kyber", "force", "palpatine", "anakin", "padme", "maul", "jango", "boba", "lando"};
+
+// Pointer to an array of strings for the chosen category's word list
+const char **words = NULL;
 
 // function to show how many incorrect guesses are remaining
 void draw_hangman(int num_incorrect_guesses)
@@ -24,8 +40,77 @@ void draw_hangman(int num_incorrect_guesses)
 
 int main()
 {
-  // Welcome message
+  // Welcome message and category choice
   printf("\nWelcome to hangman! Can you guess the word?\n");
+  printf("Please choose a category. Enter the number of your choice... \n");
+  printf("1. Bible Names\n");
+  printf("2. Animals\n");
+  printf("3. Toys\n");
+  printf("4. Plants\n");
+  printf("5. Megaman\n");
+  printf("6. Star Wars\n\n");
+
+  // array of pointers to point to categories
+  const char *categories[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars"};
+
+  // variable to store user input for category choice. use fgets() to accept input, and strcspn() to trim the newline character '\n' from user input.
+  char category_input[256];
+  fgets(category_input, sizeof(category_input), stdin);
+  category_input[strcspn(category_input, "\n")] = '\0';
+
+  // convert string to integer and assign to category_choice
+  int category_choice = atoi(category_input);
+
+  // declare variable to store the category string name the user chose
+  char category_choice_str[256] = "";
+
+  // declare variable to store number of words in the chosen category
+  int num_words = 0;
+
+  // check which category the user chose, assigning the correct array to the words variable, assigning num_words its value, and use strcpy() to assign the category name to category_choice_str. Bible Names as default category for invalid input
+  switch (category_choice)
+  {
+  case 1:
+    words = bible_names;
+    num_words = sizeof(bible_names) / sizeof(bible_names[0]);
+    strcpy(category_choice_str, categories[0]);
+    break;
+  case 2:
+    words = animals;
+    num_words = sizeof(animals) / sizeof(animals[0]);
+    strcpy(category_choice_str, categories[1]);
+    break;
+  case 3:
+    words = toys;
+    num_words = sizeof(toys) / sizeof(toys[0]);
+    strcpy(category_choice_str, categories[2]);
+    break;
+  case 4:
+    words = plants;
+    num_words = sizeof(plants) / sizeof(plants[0]);
+    strcpy(category_choice_str, categories[3]);
+    break;
+  case 5:
+    words = megaman;
+    num_words = sizeof(megaman) / sizeof(megaman[0]);
+    strcpy(category_choice_str, categories[4]);
+    break;
+  case 6:
+    words = star_wars;
+    num_words = sizeof(star_wars) / sizeof(star_wars[0]);
+    strcpy(category_choice_str, categories[5]);
+    break;
+  default:
+    printf("\nInvalid category. Defaulting to Bible Names.\n");
+    words = bible_names;
+    num_words = sizeof(bible_names) / sizeof(bible_names[0]);
+    strcpy(category_choice_str, categories[0]);
+    break;
+  }
+
+  // display category choice
+  printf("\nCategory choice: %s\n", category_choice_str);
+
   // Seed rand() with the current time for varied random numbers
   srand(time(NULL));
   // use rand() function to pick a random word from the words array and store the reference to its location in memory (pointer) in the *word variable.
@@ -137,25 +222,15 @@ int main()
       num_incorrect_guesses++;
     }
 
-    // old for loop
-    // for (int i = 0; i < word_len; i++)
-    // {
-    //   if (word[i] == guess)
-    //   {
-    //     word_progress[i] = guess;
-    //     guess_found = 1;
-    //   }
-    // }
-
     // if the word_progress array and the word array are now identical, the player has guessed the word. That means all of the underscores in the word_progress array have been replaced with correct letters. Show winning message and display word. return 0 exits us out of the main() function, terminating the program
     if (strcmp(word_progress, word) == 0)
     {
-      printf("You win! Word: %s\n\n", word);
+      printf("\nYou win! Word: %s\n\n", word);
       return 0;
     }
   } // exiting game loop since num_incorrect_guesses >= MAX_NUM_INCORRECT_GUESSES ...
   // display number of tries once more, show losing message, and display word. return 0 exits program
   draw_hangman(num_incorrect_guesses);
-  printf("You lose! The word was: %s\n\n", word);
+  printf("\nYou lose! The word was: %s\n\n", word);
   return 0;
 }
