@@ -46,12 +46,23 @@ void draw_hangman(int num_incorrect_guesses)
   // Simple ASCII art for hangman stages can be added here
 }
 
+// Function to display word progress with spaces between letters
+void display_word_progress(const char *word_progress, int word_len)
+{
+  printf("Word: ");
+  for (int i = 0; i < word_len; i++)
+  {
+    printf("%c ", word_progress[i]);
+  }
+  printf("\n");
+}
+
 // Function to handle category selection and setup
 void select_category(int *category_choice, char *category_choice_str, int *num_words)
 {
   // Prompt user to choose a category by entering a number
   printf("\nPlease choose a category. Enter the number of your choice...\n");
-  printf("1. Bible Names\n");
+  printf("\n1. Bible Names\n");
   printf("2. Animals\n");
   printf("3. Toys\n");
   printf("4. Plants\n");
@@ -154,15 +165,18 @@ int main()
     // Track number of unique guessed letters
     int num_guessed_letters = 0;
 
+    // Display the number of letters in the word
+    printf("\n%d letter word\n", word_len);
+
     // Main game loop: continues until max incorrect guesses reached
     while (num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
     {
       // Display current hangman state
       draw_hangman(num_incorrect_guesses);
-      // Show current word progress
-      printf("Word: %s\n", word_progress);
+      // Show current word progress with spaces
+      display_word_progress(word_progress, word_len);
       // Prompt for letter guess
-      printf("Guess a letter: ");
+      printf("\nGuess a letter: ");
       // Buffer for user input
       char input[256];
       // Read user input
