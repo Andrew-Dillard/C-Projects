@@ -11,29 +11,56 @@
 // Define different categories for the player to choose a word from
 // These are arrays of pointers, where each pointer points to the first letter of a word
 const char *bible_names[] = {
-    "adam", "eve", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron",
-    "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus"};
+    "adam", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron",
+    "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus", "cain"};
 
 const char *animals[] = {
-    "tiger", "elephant", "giraffe", "zebra", "lion", "bear", "wolf", "fox", "deer", "rhino",
-    "hippo", "cheetah", "panther", "eagle", "hawk", "owl", "snake", "turtle", "crocodile", "lemur"};
+    "tiger", "elephant", "giraffe", "zebra", "lion", "bear", "wolf", "deer", "rhino",
+    "hippo", "cheetah", "panther", "eagle", "hawk", "snake", "turtle", "crocodile", "lemur", "monkey", "panda"};
 
 const char *toys[] = {
-    "doll", "truck", "puzzle", "ball", "kite", "train", "blocks", "robot", "teddy", "car",
-    "boat", "plane", "marble", "lego", "frisbee", "scooter", "wagon", "rocket"};
+    "doll", "truck", "puzzle", "ball", "kite", "train", "blocks", "robot", "teddy",
+    "boat", "plane", "marble", "lego", "frisbee", "scooter", "wagon", "rocket", "yoyo"};
 
 const char *plants[] = {
     "tree", "flower", "grass", "bush", "cactus", "vine", "rose", "tulip", "daisy", "lily",
-    "fern", "moss", "bamboo", "pine", "oak", "maple", "clover", "ivy", "sunflower"};
+    "fern", "moss", "bamboo", "pine", "maple", "clover", "sunflower", "willow", "orchid"};
 
 const char *megaman[] = {
     "megaman", "roll", "gutsman", "freezeman", "cutman", "shadowman", "elecman", "torchman",
-    "protoman", "bass", "glide", "lan", "higsby", "yai", "dex", "mayl", "chaud",
-    "wily", "chip", "netbattle"};
+    "protoman", "bass", "glide", "higsby", "chaud",
+    "wily", "chip", "netbattle", "rush", "mayl", "gateman"};
 
 const char *star_wars[] = {
-    "luke", "leia", "han", "vader", "yoda", "obiwan", "chewbacca", "kyber", "force", "palpatine",
-    "anakin", "padme", "maul", "jango", "boba", "lando"};
+    "luke", "leia", "vader", "yoda", "obiwan", "chewbacca", "kyber", "force", "palpatine",
+    "anakin", "padme", "maul", "jango", "boba", "lando", "solo"};
+
+const char *lord_of_the_rings[] = {
+    "frodo", "gandalf", "aragorn", "legolas", "gimli", "boromir", "samwise", "merry", "pippin",
+    "bilbo", "sauron", "gollum", "saruman", "elrond", "galadriel", "theoden", "eowyn", "faramir", "denethor"};
+
+const char *colors[] = {
+    "blue", "green", "yellow", "purple", "orange", "black", "white", "brown", "silver", "gold",
+    "indigo", "violet", "magenta", "cyan", "turquoise", "lavender", "maroon", "olive", "teal"};
+
+const char *jobs[] = {
+    "doctor", "teacher", "engineer", "lawyer", "chef", "pilot", "artist", "nurse", "farmer", "writer",
+    "actor", "singer", "fireman", "plumber", "electrician", "mechanic", "scientist", "programmer", "architect"};
+
+const char *superheroes[] = {
+    "batman",
+    "superman",
+    "spiderman",
+    "ironman",
+    "thor",
+    "hulk",
+    "wonderwoman",
+    "flash",
+    "aquaman",
+    "blackwidow",
+    "hawkeye",
+    "robin",
+    "antman"};
 
 // Global pointer to the chosen category's word list
 const char **words = NULL;
@@ -43,7 +70,74 @@ void draw_hangman(int num_incorrect_guesses)
 {
   // Print the number of wrong guesses remaining
   printf("\nWrong guesses remaining: %d\n", MAX_NUM_INCORRECT_GUESSES - num_incorrect_guesses);
-  // Simple ASCII art for hangman stages can be added here
+
+  // Display ASCII art based on the number of incorrect guesses
+  switch (num_incorrect_guesses)
+  {
+  case 0:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  case 1:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  case 2:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf("  |   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  case 3:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|   |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  case 4:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf("      |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  case 5:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf(" /    |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  case 6:
+    printf("  _____\n");
+    printf("  |   |\n");
+    printf("  O   |\n");
+    printf(" /|\\  |\n");
+    printf(" / \\  |\n");
+    printf("      |\n");
+    printf("========\n");
+    break;
+  }
 }
 
 // Function to display word progress with spaces between letters
@@ -67,10 +161,14 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
   printf("3. Toys\n");
   printf("4. Plants\n");
   printf("5. Megaman\n");
-  printf("6. Star Wars\n\n");
+  printf("6. Star Wars\n");
+  printf("7. Lord of the Rings\n");
+  printf("8. Colors\n");
+  printf("9. Jobs\n");
+  printf("10. Superheroes\n\n");
 
   // Array of category names for display and assignment
-  const char *categories[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars"};
+  const char *categories[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
 
   // Buffer to store user input for category choice
   char category_input[256];
@@ -113,6 +211,26 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
     words = star_wars;
     *num_words = sizeof(star_wars) / sizeof(star_wars[0]);
     strcpy(category_choice_str, categories[5]);
+    break;
+  case 7:
+    words = lord_of_the_rings;
+    *num_words = sizeof(lord_of_the_rings) / sizeof(lord_of_the_rings[0]);
+    strcpy(category_choice_str, categories[6]);
+    break;
+  case 8:
+    words = colors;
+    *num_words = sizeof(colors) / sizeof(colors[0]);
+    strcpy(category_choice_str, categories[7]);
+    break;
+  case 9:
+    words = jobs;
+    *num_words = sizeof(jobs) / sizeof(jobs[0]);
+    strcpy(category_choice_str, categories[8]);
+    break;
+  case 10:
+    words = superheroes;
+    *num_words = sizeof(superheroes) / sizeof(superheroes[0]);
+    strcpy(category_choice_str, categories[9]);
     break;
   default:
     // Default to Bible Names for invalid input
@@ -176,13 +294,19 @@ int main()
       // Show current word progress with spaces
       display_word_progress(word_progress, word_len);
       // Prompt for letter guess
-      printf("\nGuess a letter: ");
+      printf("Guess a letter: ");
       // Buffer for user input
       char input[256];
       // Read user input
       fgets(input, sizeof(input), stdin);
       // Remove trailing newline
       input[strcspn(input, "\n")] = '\0';
+      // Check for empty input
+      if (input[0] == '\0')
+      {
+        printf("\nInvalid input. Please enter a letter.\n");
+        continue;
+      }
       // Variable to store the guessed letter
       char guess = '\0';
       // Count alphabetic characters in input
@@ -202,7 +326,7 @@ int main()
         else
         {
           // Handle non-alphabetic input
-          printf("letters only please. Try again\n");
+          printf("\nletters only please. Try again\n");
           break;
         }
       }
@@ -212,19 +336,13 @@ int main()
       // Check for multiple letters
       if (char_count > 1)
       {
-        printf("Please enter only one letter. Try again.\n");
-        continue;
-      }
-      // Check for empty input
-      if (!guess)
-      {
-        printf("Invalid input. Please enter a letter.\n");
+        printf("\nPlease enter only one letter. Try again.\n");
         continue;
       }
       // Check if letter was already guessed
       if (strchr(guessed_letters, guess))
       {
-        printf("Oops, already guessed that letter. Try a new letter\n");
+        printf("\nOops, already guessed that letter. Try a new letter\n");
         continue;
       }
       // Add valid guess to guessed letters
@@ -248,11 +366,11 @@ int main()
       // Display result of guess
       if (guess_found == 1)
       {
-        printf("Yes, there %s %d %c%s\n", (count == 1) ? "is" : "are", count, guess, (count == 1) ? "." : "'s.");
+        printf("\nYes, there %s %d %c%s\n", (count == 1) ? "is" : "are", count, guess, (count == 1) ? "." : "'s.");
       }
       if (guess_found == 0)
       {
-        printf("Sorry, no %c\n", guess);
+        printf("\nSorry, no %c\n", guess);
         // Increment incorrect guess count
         num_incorrect_guesses++;
       }
