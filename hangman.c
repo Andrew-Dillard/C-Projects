@@ -69,7 +69,7 @@ const char **words = NULL;
 void draw_hangman(int num_incorrect_guesses)
 {
   // Print the number of wrong guesses remaining
-  printf("\nWrong guesses remaining: %d\n", MAX_NUM_INCORRECT_GUESSES - num_incorrect_guesses);
+  printf("Wrong guesses remaining: %d\n", MAX_NUM_INCORRECT_GUESSES - num_incorrect_guesses);
 
   // Display ASCII art based on the number of incorrect guesses
   switch (num_incorrect_guesses)
@@ -143,7 +143,7 @@ void draw_hangman(int num_incorrect_guesses)
 // Function to display word progress with spaces between letters
 void display_word_progress(const char *word_progress, int word_len)
 {
-  printf("Word: ");
+  printf("\nWord: ");
   for (int i = 0; i < word_len; i++)
   {
     printf("%c ", word_progress[i]);
@@ -242,7 +242,34 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
     break;
   }
   // Display the chosen category
-  printf("\nCategory choice: %s\n", category_choice_str);
+  // printf("\nCategory choice: %s\n", category_choice_str);
+}
+
+// Function to display incorrect letters
+void display_incorrect_letters(const char *guessed_letters, int num_guessed_letters, const char *word, int word_len)
+{
+  printf("Incorrect guesses: ");
+  int found = 0;
+  for (int i = 0; i < num_guessed_letters; i++)
+  {
+    int in_word = 0;
+    for (int j = 0; j < word_len; j++)
+    {
+      if (guessed_letters[i] == word[j])
+      {
+        in_word = 1;
+        break;
+      }
+    }
+    if (!in_word)
+    {
+      printf("%c ", guessed_letters[i]);
+      found = 1;
+    }
+  }
+  if (!found)
+    printf("None");
+  printf("\n");
 }
 
 int main()
@@ -283,18 +310,17 @@ int main()
     // Track number of unique guessed letters
     int num_guessed_letters = 0;
 
-    // Display the number of letters in the word
-    printf("\n%d letter word\n", word_len);
-
     // Main game loop: continues until max incorrect guesses reached
     while (num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
     {
-      // Display current hangman state
+      // Display game state
+      printf("\nCategory: %s\n", category_choice_str);
+      printf("%d letter word\n", word_len);
+      display_incorrect_letters(guessed_letters, num_guessed_letters, word, word_len);
       draw_hangman(num_incorrect_guesses);
-      // Show current word progress with spaces
       display_word_progress(word_progress, word_len);
       // Prompt for letter guess
-      printf("Guess a letter: ");
+      printf("\nGuess a letter: ");
       // Buffer for user input
       char input[256];
       // Read user input
@@ -327,7 +353,7 @@ int main()
         {
           // Handle non-alphabetic input
           printf("\nletters only please. Try again\n");
-          break;
+          continue;
         }
       }
       // Skip if no valid letter was entered
@@ -385,7 +411,10 @@ int main()
     // If max incorrect guesses reached, display lose message
     if (num_incorrect_guesses >= MAX_NUM_INCORRECT_GUESSES)
     {
+      printf("\nCategory: %s\n", category_choice_str);
+      printf("%d letter word\n", word_len);
       draw_hangman(num_incorrect_guesses);
+      display_word_progress(word_progress, word_len);
       printf("\nYou lose! The word was: %s\n\n", word);
     }
 
