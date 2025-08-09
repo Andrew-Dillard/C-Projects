@@ -365,29 +365,12 @@ void get_custom_word(char *custom_word)
       printf("Here are 10 random word suggestions:\n");
 
       char suggested_words[10][MAX_WORD_LENGTH];
-      int used[TOTAL_WORDS] = {0};
 
-      for (int k = 0; k < 10; k++)
+      for (int c = 0; c < TOTAL_CATEGORIES; c++)
       {
-        int r;
-        do
-        {
-          r = rand() % TOTAL_WORDS;
-        } while (used[r]);
-        used[r] = 1;
-
-        int cum = 0;
-        for (int c = 0; c < TOTAL_CATEGORIES; c++)
-        {
-          int size = category_sizes[c];
-          if (r < cum + size)
-          {
-            strcpy(suggested_words[k], all_categories[c][r - cum]);
-            break;
-          }
-          cum += size;
-        }
-        printf("%d. %s\n", k + 1, suggested_words[k]);
+        int idx = rand() % category_sizes[c];
+        strcpy(suggested_words[c], all_categories[c][idx]);
+        printf("%d. %s\n", c + 1, suggested_words[c]);
       }
 
       printf("Choose a word by entering its number (1-10): ");
