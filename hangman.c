@@ -63,6 +63,34 @@ const char *superheroes[] = {
     "robin",
     "antman"};
 
+// All categories for random word suggestions
+const char **all_categories[] = {
+    bible_names,
+    animals,
+    toys,
+    plants,
+    megaman,
+    star_wars,
+    lord_of_the_rings,
+    colors,
+    jobs,
+    superheroes};
+
+const int category_sizes[] = {
+    sizeof(bible_names) / sizeof(bible_names[0]),
+    sizeof(animals) / sizeof(animals[0]),
+    sizeof(toys) / sizeof(toys[0]),
+    sizeof(plants) / sizeof(plants[0]),
+    sizeof(megaman) / sizeof(megaman[0]),
+    sizeof(star_wars) / sizeof(star_wars[0]),
+    sizeof(lord_of_the_rings) / sizeof(lord_of_the_rings[0]),
+    sizeof(colors) / sizeof(colors[0]),
+    sizeof(jobs) / sizeof(jobs[0]),
+    sizeof(superheroes) / sizeof(superheroes[0])};
+
+#define TOTAL_CATEGORIES (sizeof(all_categories) / sizeof(all_categories[0]))
+#define TOTAL_WORDS 182 // Precalculated total words across all categories
+
 // Global pointer to the chosen category's word list
 const char **words = NULL;
 
@@ -279,52 +307,121 @@ void get_custom_word(char *custom_word)
 
   while (!valid)
   {
-    printf("\nPlayer 2, please look away while Player 1 enters the word.\n");
-    printf("Player 1, enter a word for Player 2 to guess (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
-    fgets(input, sizeof(input), stdin);
-    input[strcspn(input, "\n")] = '\0';
+    printf("\nPlayer 2, please look away while Player 1 selects the word.\n");
 
-    // Validate input: ensure it's not empty and contains only letters
-    valid = 1;
-    if (input[0] == '\0')
+    printf("Player 1, do you want to enter a custom word (1) or choose from 10 random suggestions (2)? ");
+    char mode_choice_input[256];
+    fgets(mode_choice_input, sizeof(mode_choice_input), stdin);
+    mode_choice_input[strcspn(mode_choice_input, "\n")] = '\0';
+    int mode_choice = atoi(mode_choice_input);
+
+    if (mode_choice != 1 && mode_choice != 2)
     {
-      valid = 0;
-      printf("\nInvalid word. Word cannot be empty.\n");
+      printf("\nInvalid choice. Please enter 1 or 2.\n");
+      continue;
+    }
+
+    if (mode_choice == 1)
+    {
+      // Custom word input
+      printf("Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
+      fgets(input, sizeof(input), stdin);
+      input[strcspn(input, "\n")] = '\0';
+
+      // Validate input: ensure it's not empty and contains only letters
+      int input_valid = 1;
+      if (input[0] == '\0')
+      {
+        input_valid = 0;
+        printf("\nInvalid word. Word cannot be empty.\n");
+      }
+      else
+      {
+        for (int i = 0; input[i] != '\0'; i++)
+        {
+          if (!isalpha(input[i]))
+          {
+            input_valid = 0;
+            printf("\nInvalid word. Use letters only.\n");
+            break;
+          }
+        }
+      }
+
+      if (!input_valid)
+      {
+        continue;
+      }
+
+      // Convert to lowercase
+      for (int i = 0; input[i] != '\0'; i++)
+      {
+        input[i] = tolower(input[i]);
+      }
     }
     else
     {
-      for (int i = 0; input[i] != '\0'; i++)
+      // Suggestions
+      printf("Here are 10 random word suggestions:\n");
+
+      char suggested_words[10][MAX_WORD_LENGTH];
+      int used[TOTAL_WORDS] = {0};
+
+      for (int k = 0; k < 10; k++)
       {
-        if (!isalpha(input[i]))
+        int r;
+        do
         {
-          valid = 0;
-          printf("\nInvalid word. Use letters only.\n");
-          break;
+          r = rand() % TOTAL_WORDS;
+        } while (used[r]);
+        used[r] = 1;
+
+        int cum = 0;
+        for (int c = 0; c < TOTAL_CATEGORIES; c++)
+        {
+          int size = category_sizes[c];
+          if (r < cum + size)
+          {
+            strcpy(suggested_words[k], all_categories[c][r - cum]);
+            break;
+          }
+          cum += size;
         }
+        printf("%d. %s\n", k + 1, suggested_words[k]);
       }
-    }
 
-    if (valid)
-    {
-      // Confirm the word with Player 1
-      printf("\nYou entered: %s\nIs this correct? (y/n): ", input);
-      char confirm[256];
-      fgets(confirm, sizeof(confirm), stdin);
-      confirm[strcspn(confirm, "\n")] = '\0';
-      if (tolower(confirm[0]) != 'y')
+      printf("Choose a word by entering its number (1-10): ");
+      char choice_input[256];
+      fgets(choice_input, sizeof(choice_input), stdin);
+      choice_input[strcspn(choice_input, "\n")] = '\0';
+
+      int choice = atoi(choice_input) - 1;
+      if (choice < 0 || choice >= 10)
       {
-        valid = 0;
-        printf("\nPlease re-enter the word.\n");
+        printf("\nInvalid choice. Please try again.\n");
+        continue;
       }
+
+      strcpy(input, suggested_words[choice]);
+    }
+
+    // Confirm the word with Player 1
+    printf("\nYour word: %s\nIs this correct? (y/n): ", input);
+    char confirm[256];
+    fgets(confirm, sizeof(confirm), stdin);
+    confirm[strcspn(confirm, "\n")] = '\0';
+    if (tolower(confirm[0]) == 'y')
+    {
+      valid = 1;
+    }
+    else
+    {
+      printf("\nPlease select again.\n");
     }
   }
 
-  // Convert to lowercase and copy to custom_word
-  for (int i = 0; input[i] != '\0'; i++)
-  {
-    custom_word[i] = tolower(input[i]);
-  }
-  custom_word[strlen(input)] = '\0';
+  // Copy to custom_word
+  strcpy(custom_word, input);
 }
 
 int main()
