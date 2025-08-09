@@ -7,6 +7,7 @@
 
 // Define constant for maximum number of incorrect guesses allowed
 #define MAX_NUM_INCORRECT_GUESSES 6
+#define MAX_WORD_LENGTH 50
 
 // Define different categories for the player to choose a word from
 // These are arrays of pointers, where each pointer points to the first letter of a word
@@ -151,6 +152,33 @@ void display_word_progress(const char *word_progress, int word_len)
   printf("\n");
 }
 
+// Function to display incorrect letters
+void display_incorrect_letters(const char *guessed_letters, int num_guessed_letters, const char *word, int word_len)
+{
+  printf("Incorrect guesses: ");
+  int found = 0;
+  for (int i = 0; i < num_guessed_letters; i++)
+  {
+    int in_word = 0;
+    for (int j = 0; j < word_len; j++)
+    {
+      if (guessed_letters[i] == word[j])
+      {
+        in_word = 1;
+        break;
+      }
+    }
+    if (!in_word)
+    {
+      printf("%c ", guessed_letters[i]);
+      found = 1;
+    }
+  }
+  if (!found)
+    printf("None");
+  printf("\n");
+}
+
 // Function to handle category selection and setup
 void select_category(int *category_choice, char *category_choice_str, int *num_words)
 {
@@ -241,41 +269,68 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
     *category_choice = 1;
     break;
   }
-  // Display the chosen category
-  // printf("\nCategory choice: %s\n", category_choice_str);
 }
 
-// Function to display incorrect letters
-void display_incorrect_letters(const char *guessed_letters, int num_guessed_letters, const char *word, int word_len)
+// Function to get custom word from Player 1 in two-player mode
+void get_custom_word(char *custom_word)
 {
-  printf("Incorrect guesses: ");
-  int found = 0;
-  for (int i = 0; i < num_guessed_letters; i++)
+  char input[MAX_WORD_LENGTH];
+  int valid = 0;
+
+  while (!valid)
   {
-    int in_word = 0;
-    for (int j = 0; j < word_len; j++)
+    printf("\nPlayer 2, please look away while Player 1 enters the word.\n");
+    printf("Player 1, enter a word for Player 2 to guess (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0';
+
+    // Validate input: ensure it's not empty and contains only letters
+    valid = 1;
+    if (input[0] == '\0')
     {
-      if (guessed_letters[i] == word[j])
+      valid = 0;
+      printf("\nInvalid word. Word cannot be empty.\n");
+    }
+    else
+    {
+      for (int i = 0; input[i] != '\0'; i++)
       {
-        in_word = 1;
-        break;
+        if (!isalpha(input[i]))
+        {
+          valid = 0;
+          printf("\nInvalid word. Use letters only.\n");
+          break;
+        }
       }
     }
-    if (!in_word)
+
+    if (valid)
     {
-      printf("%c ", guessed_letters[i]);
-      found = 1;
+      // Confirm the word with Player 1
+      printf("\nYou entered: %s\nIs this correct? (y/n): ", input);
+      char confirm[256];
+      fgets(confirm, sizeof(confirm), stdin);
+      confirm[strcspn(confirm, "\n")] = '\0';
+      if (tolower(confirm[0]) != 'y')
+      {
+        valid = 0;
+        printf("\nPlease re-enter the word.\n");
+      }
     }
   }
-  if (!found)
-    printf("None");
-  printf("\n");
+
+  // Convert to lowercase and copy to custom_word
+  for (int i = 0; input[i] != '\0'; i++)
+  {
+    custom_word[i] = tolower(input[i]);
+  }
+  custom_word[strlen(input)] = '\0';
 }
 
 int main()
 {
   // Display welcome message
-  printf("\nWelcome to hangman! Can you guess the word?\n");
+  printf("\nWelcome to Hangman!\n");
 
   // Seed random number generator with current time for varied word selection
   srand(time(NULL));
@@ -285,23 +340,43 @@ int main()
   // Continue playing as long as the user enters 'y' or 'Y'
   while (tolower(play_again) == 'y')
   {
+    // Prompt for game mode
+    printf("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ");
+    char mode_input[256];
+    fgets(mode_input, sizeof(mode_input), stdin);
+    mode_input[strcspn(mode_input, "\n")] = '\0';
+    int game_mode = atoi(mode_input);
+    if (game_mode != 1 && game_mode != 2)
+    {
+      printf("\nInvalid mode. Defaulting to Single Player.\n");
+      game_mode = 1;
+    }
+
     // Variables for category selection and game setup
-    int category_choice;
+    int category_choice = 0;
     char category_choice_str[256] = "";
     int num_words = 0;
+    char word[MAX_WORD_LENGTH];
+    int word_len;
 
-    // Select a category and set up words
-    select_category(&category_choice, category_choice_str, &num_words);
+    if (game_mode == 1)
+    {
+      // Single-player mode: select category and random word
+      select_category(&category_choice, category_choice_str, &num_words);
+      strcpy(word, words[rand() % num_words]);
+      word_len = strlen(word);
+    }
+    else
+    {
+      // Two-player mode: Player 1 inputs a custom word
+      get_custom_word(word);
+      word_len = strlen(word);
+      strcpy(category_choice_str, "Custom Word");
+    }
 
-    // Select a random word from the chosen category
-    const char *word = words[rand() % num_words];
-    // Get the length of the selected word
-    int word_len = strlen(word);
     // Create array to track word progress with underscores
-    char word_progress[word_len + 1];
-    // Initialize word progress with underscores
+    char word_progress[MAX_WORD_LENGTH];
     memset(word_progress, '_', word_len);
-    // Add null terminator to word progress
     word_progress[word_len] = '\0';
     // Track number of incorrect guesses
     int num_incorrect_guesses = 0;
@@ -320,7 +395,7 @@ int main()
       draw_hangman(num_incorrect_guesses);
       display_word_progress(word_progress, word_len);
       // Prompt for letter guess
-      printf("\nGuess a letter: ");
+      printf("\n%sGuess a letter: ", game_mode == 2 ? "Player 2, " : "");
       // Buffer for user input
       char input[256];
       // Read user input
@@ -352,7 +427,7 @@ int main()
         else
         {
           // Handle non-alphabetic input
-          printf("\nletters only please. Try again\n");
+          printf("\nLetters only please. Try again.\n");
           continue;
         }
       }
@@ -368,7 +443,7 @@ int main()
       // Check if letter was already guessed
       if (strchr(guessed_letters, guess))
       {
-        printf("\nOops, already guessed that letter. Try a new letter\n");
+        printf("\nOops, already guessed that letter. Try a new letter.\n");
         continue;
       }
       // Add valid guess to guessed letters
@@ -404,7 +479,7 @@ int main()
       if (strcmp(word_progress, word) == 0)
       {
         // Display win message and exit game loop
-        printf("\nYou win! Word: %s\n\n", word);
+        printf("\n%sYou win! Word: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
         break;
       }
     }
@@ -415,7 +490,7 @@ int main()
       printf("%d letter word\n", word_len);
       draw_hangman(num_incorrect_guesses);
       display_word_progress(word_progress, word_len);
-      printf("\nYou lose! The word was: %s\n\n", word);
+      printf("\n%sYou lose! The word was: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
     }
 
     // Prompt to play again
