@@ -5,6 +5,13 @@
 #include <ctype.h>
 #include <time.h>
 
+// check operating system of user and define clear screen command
+#ifdef _WIN32
+#define CLEAR_SCREEN "cls"
+#else
+#define CLEAR_SCREEN "clear"
+#endif
+
 // Define constant for maximum number of incorrect guesses allowed
 #define MAX_NUM_INCORRECT_GUESSES 6
 #define MAX_WORD_LENGTH 50
@@ -300,10 +307,12 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
 }
 
 // Function to get custom word from Player 1 in two-player mode
-void get_custom_word(char *custom_word)
+// Function to get custom word from Player 1 in two-player mode and return category name
+void get_custom_word(char *custom_word, char *category_choice_str)
 {
   char input[MAX_WORD_LENGTH];
   int valid = 0;
+  const char *categories[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
 
   while (!valid)
   {
@@ -358,6 +367,7 @@ void get_custom_word(char *custom_word)
       {
         input[i] = tolower(input[i]);
       }
+      strcpy(category_choice_str, "Custom Word");
     }
     else
     {
@@ -365,11 +375,13 @@ void get_custom_word(char *custom_word)
       printf("Here are 10 random word suggestions:\n");
 
       char suggested_words[10][MAX_WORD_LENGTH];
+      int category_indices[10];
 
       for (int c = 0; c < TOTAL_CATEGORIES; c++)
       {
         int idx = rand() % category_sizes[c];
         strcpy(suggested_words[c], all_categories[c][idx]);
+        category_indices[c] = c;
         printf("%d. %s\n", c + 1, suggested_words[c]);
       }
 
@@ -386,6 +398,7 @@ void get_custom_word(char *custom_word)
       }
 
       strcpy(input, suggested_words[choice]);
+      strcpy(category_choice_str, categories[category_indices[choice]]);
     }
 
     // Confirm the word with Player 1
@@ -396,6 +409,8 @@ void get_custom_word(char *custom_word)
     if (tolower(confirm[0]) == 'y')
     {
       valid = 1;
+      system(CLEAR_SCREEN); // Clear the screen after confirmation
+      printf("\nPlayer 2, you can look back now.\n");
     }
     else
     {
@@ -448,10 +463,9 @@ int main()
     }
     else
     {
-      // Two-player mode: Player 1 inputs a custom word
-      get_custom_word(word);
+      // Two-player mode: Player 1 inputs a custom word or selects from suggestions
+      get_custom_word(word, category_choice_str);
       word_len = strlen(word);
-      strcpy(category_choice_str, "Custom Word");
     }
 
     // Create array to track word progress with underscores
