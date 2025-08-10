@@ -5,6 +5,18 @@
 #include <ctype.h>
 #include <time.h>
 
+// Validate input: trim newline, check if it matches expected format
+int validate_input(char *input, size_t size, int (*check)(int))
+{
+  input[strcspn(input, "\n")] = '\0';
+  if (input[0] == '\0')
+    return 0;
+  for (int i = 0; input[i] != '\0'; i++)
+    if (!check(input[i]))
+      return 0;
+  return 1;
+}
+
 // check operating system of user and define clear screen command
 #ifdef _WIN32
 #define CLEAR_SCREEN "cls"
@@ -94,6 +106,10 @@ const int category_sizes[] = {
     sizeof(colors) / sizeof(colors[0]),
     sizeof(jobs) / sizeof(jobs[0]),
     sizeof(superheroes) / sizeof(superheroes[0])};
+
+const char *category_names[] = {
+    "Bible Names", "Animals", "Toys", "Plants", "Megaman",
+    "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
 
 #define TOTAL_CATEGORIES (sizeof(all_categories) / sizeof(all_categories[0]))
 #define TOTAL_WORDS 182 // Precalculated total words across all categories
@@ -230,16 +246,18 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
   printf("9. Jobs\n");
   printf("10. Superheroes\n\n");
 
-  // Array of category names for display and assignment
-  const char *categories[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
-
   // Buffer to store user input for category choice
   char category_input[256];
-  // Read user input
   fgets(category_input, sizeof(category_input), stdin);
-  // Remove trailing newline from input
-  category_input[strcspn(category_input, "\n")] = '\0';
-  // Convert input string to integer
+  if (!validate_input(category_input, sizeof(category_input), isdigit))
+  {
+    printf("\nInvalid category. Defaulting to Bible Names.\n");
+    words = bible_names;
+    *num_words = sizeof(bible_names) / sizeof(bible_names[0]);
+    strcpy(category_choice_str, category_names[0]);
+    *category_choice = 1;
+    return;
+  }
   *category_choice = atoi(category_input);
 
   // Assign the appropriate word list and category details based on user choice
@@ -248,71 +266,69 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
   case 1:
     words = bible_names;
     *num_words = sizeof(bible_names) / sizeof(bible_names[0]);
-    strcpy(category_choice_str, categories[0]);
+    strcpy(category_choice_str, category_names[0]);
     break;
   case 2:
     words = animals;
     *num_words = sizeof(animals) / sizeof(animals[0]);
-    strcpy(category_choice_str, categories[1]);
+    strcpy(category_choice_str, category_names[1]);
     break;
   case 3:
     words = toys;
     *num_words = sizeof(toys) / sizeof(toys[0]);
-    strcpy(category_choice_str, categories[2]);
+    strcpy(category_choice_str, category_names[2]);
     break;
   case 4:
     words = plants;
     *num_words = sizeof(plants) / sizeof(plants[0]);
-    strcpy(category_choice_str, categories[3]);
+    strcpy(category_choice_str, category_names[3]);
     break;
   case 5:
     words = megaman;
     *num_words = sizeof(megaman) / sizeof(megaman[0]);
-    strcpy(category_choice_str, categories[4]);
+    strcpy(category_choice_str, category_names[4]);
     break;
   case 6:
     words = star_wars;
     *num_words = sizeof(star_wars) / sizeof(star_wars[0]);
-    strcpy(category_choice_str, categories[5]);
+    strcpy(category_choice_str, category_names[5]);
     break;
   case 7:
     words = lord_of_the_rings;
     *num_words = sizeof(lord_of_the_rings) / sizeof(lord_of_the_rings[0]);
-    strcpy(category_choice_str, categories[6]);
+    strcpy(category_choice_str, category_names[6]);
     break;
   case 8:
     words = colors;
     *num_words = sizeof(colors) / sizeof(colors[0]);
-    strcpy(category_choice_str, categories[7]);
+    strcpy(category_choice_str, category_names[7]);
     break;
   case 9:
     words = jobs;
     *num_words = sizeof(jobs) / sizeof(jobs[0]);
-    strcpy(category_choice_str, categories[8]);
+    strcpy(category_choice_str, category_names[8]);
     break;
   case 10:
     words = superheroes;
     *num_words = sizeof(superheroes) / sizeof(superheroes[0]);
-    strcpy(category_choice_str, categories[9]);
+    strcpy(category_choice_str, category_names[9]);
     break;
   default:
     // Default to Bible Names for invalid input
     printf("\nInvalid category. Defaulting to Bible Names.\n");
     words = bible_names;
     *num_words = sizeof(bible_names) / sizeof(bible_names[0]);
-    strcpy(category_choice_str, categories[0]);
+    strcpy(category_choice_str, category_names[0]);
     *category_choice = 1;
     break;
   }
 }
 
-// Function to get custom word from Player 1 in two-player mode
 // Function to get custom word from Player 1 in two-player mode and return category name
 void get_custom_word(char *custom_word, char *category_choice_str)
 {
   char input[MAX_WORD_LENGTH];
   int valid = 0;
-  const char *categories[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
 
   while (!valid)
   {
@@ -321,9 +337,12 @@ void get_custom_word(char *custom_word, char *category_choice_str)
     printf("Player 1, do you want to enter a custom word (1) or choose from 10 random suggestions (2)? ");
     char mode_choice_input[256];
     fgets(mode_choice_input, sizeof(mode_choice_input), stdin);
-    mode_choice_input[strcspn(mode_choice_input, "\n")] = '\0';
+    if (!validate_input(mode_choice_input, sizeof(mode_choice_input), isdigit))
+    {
+      printf("\nInvalid choice. Please enter 1 or 2.\n");
+      continue;
+    }
     int mode_choice = atoi(mode_choice_input);
-
     if (mode_choice != 1 && mode_choice != 2)
     {
       printf("\nInvalid choice. Please enter 1 or 2.\n");
@@ -335,33 +354,11 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       // Custom word input
       printf("Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
       fgets(input, sizeof(input), stdin);
-      input[strcspn(input, "\n")] = '\0';
-
-      // Validate input: ensure it's not empty and contains only letters
-      int input_valid = 1;
-      if (input[0] == '\0')
+      if (!validate_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
       {
-        input_valid = 0;
-        printf("\nInvalid word. Word cannot be empty.\n");
-      }
-      else
-      {
-        for (int i = 0; input[i] != '\0'; i++)
-        {
-          if (!isalpha(input[i]))
-          {
-            input_valid = 0;
-            printf("\nInvalid word. Use letters only.\n");
-            break;
-          }
-        }
-      }
-
-      if (!input_valid)
-      {
+        printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
         continue;
       }
-
       // Convert to lowercase
       for (int i = 0; input[i] != '\0'; i++)
       {
@@ -388,8 +385,11 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       printf("Choose a word by entering its number (1-10): ");
       char choice_input[256];
       fgets(choice_input, sizeof(choice_input), stdin);
-      choice_input[strcspn(choice_input, "\n")] = '\0';
-
+      if (!validate_input(choice_input, sizeof(choice_input), isdigit))
+      {
+        printf("\nInvalid choice. Please try again.\n");
+        continue;
+      }
       int choice = atoi(choice_input) - 1;
       if (choice < 0 || choice >= 10)
       {
@@ -398,14 +398,18 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       }
 
       strcpy(input, suggested_words[choice]);
-      strcpy(category_choice_str, categories[category_indices[choice]]);
+      strcpy(category_choice_str, category_names[category_indices[choice]]);
     }
 
     // Confirm the word with Player 1
     printf("\nYour word: %s\nIs this correct? (y/n): ", input);
     char confirm[256];
     fgets(confirm, sizeof(confirm), stdin);
-    confirm[strcspn(confirm, "\n")] = '\0';
+    if (!validate_input(confirm, sizeof(confirm), isalpha))
+    {
+      printf("\nPlease select again.\n");
+      continue;
+    }
     if (tolower(confirm[0]) == 'y')
     {
       valid = 1;
@@ -439,7 +443,11 @@ int main()
     printf("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ");
     char mode_input[256];
     fgets(mode_input, sizeof(mode_input), stdin);
-    mode_input[strcspn(mode_input, "\n")] = '\0';
+    if (!validate_input(mode_input, sizeof(mode_input), isdigit))
+    {
+      printf("\nInvalid mode. Defaulting to Single Player.\n");
+      mode_input[0] = '1';
+    }
     int game_mode = atoi(mode_input);
     if (game_mode != 1 && game_mode != 2)
     {
@@ -492,42 +500,24 @@ int main()
       printf("\n%sGuess a letter: ", game_mode == 2 ? "Player 2, " : "");
       // Buffer for user input
       char input[256];
-      // Read user input
       fgets(input, sizeof(input), stdin);
-      // Remove trailing newline
-      input[strcspn(input, "\n")] = '\0';
-      // Check for empty input
-      if (input[0] == '\0')
+      if (!validate_input(input, sizeof(input), isalpha))
       {
         printf("\nInvalid input. Please enter a letter.\n");
         continue;
       }
       // Variable to store the guessed letter
       char guess = '\0';
-      // Count alphabetic characters in input
       int char_count = 0;
-      // Process input to extract a single letter
       for (int i = 0; input[i] != '\0'; i++)
       {
-        if (isalpha(input[i]))
+        if (guess == '\0')
         {
-          if (guess == '\0')
-          {
-            // Convert guess to lowercase
-            guess = tolower(input[i]);
-          }
-          char_count++;
+          // Convert guess to lowercase
+          guess = tolower(input[i]);
         }
-        else
-        {
-          // Handle non-alphabetic input
-          printf("\nLetters only please. Try again.\n");
-          continue;
-        }
+        char_count++;
       }
-      // Skip if no valid letter was entered
-      if (guess == '\0')
-        continue;
       // Check for multiple letters
       if (char_count > 1)
       {
@@ -591,8 +581,16 @@ int main()
     printf("Would you like to play again? (y/n): ");
     char input[256];
     fgets(input, sizeof(input), stdin);
-    // Store first character of input as play_again choice
-    play_again = tolower(input[0]);
+    if (!validate_input(input, sizeof(input), isalpha))
+    {
+      printf("\nInvalid input. Defaulting to no.\n");
+      play_again = 'n';
+    }
+    else
+    {
+      // Store first character of input as play_again choice
+      play_again = tolower(input[0]);
+    }
   }
 
   // Display exit message when player chooses not to replay
