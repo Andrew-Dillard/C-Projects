@@ -14,6 +14,18 @@ int validate_input(char *input, size_t size, int (*check)(int))
   return 1;
 }
 
+// Add after validate_input function
+int validate_multi_char_input(char *input, size_t size, int (*check)(int))
+{
+  input[strcspn(input, "\n")] = '\0';
+  if (input[0] == '\0')
+    return 0;
+  for (int i = 0; input[i] != '\0'; i++)
+    if (!check(input[i]))
+      return 0;
+  return 1;
+}
+
 // check operating system of user and define clear screen command
 #ifdef _WIN32
 #define CLEAR_SCREEN "cls"
@@ -310,7 +322,7 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       // Custom word input
       printf("Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
       fgets(input, sizeof(input), stdin);
-      if (!validate_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
+      if (!validate_multi_char_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
       {
         printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
         continue;
