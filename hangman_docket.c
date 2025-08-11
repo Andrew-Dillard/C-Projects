@@ -5,15 +5,12 @@
 #include <ctype.h>
 #include <time.h>
 
-// Validate input: trim newline, check if it matches expected format
+// Replace the existing validate_input function
 int validate_input(char *input, size_t size, int (*check)(int))
 {
   input[strcspn(input, "\n")] = '\0';
-  if (input[0] == '\0')
+  if (strlen(input) != 1 || !check(input[0]))
     return 0;
-  for (int i = 0; input[i] != '\0'; i++)
-    if (!check(input[i]))
-      return 0;
   return 1;
 }
 
