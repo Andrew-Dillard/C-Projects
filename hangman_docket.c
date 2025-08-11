@@ -1,44 +1,31 @@
-// Include standard libraries for input/output, random numbers, string operations, character checks, and time
+// Hangman game implementation in C
+// Supports single-player and two-player modes
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
 
-// Replace the existing validate_input function
-int validate_input(char *input, size_t size, int (*check)(int))
-{
-  input[strcspn(input, "\n")] = '\0';
-  if (strlen(input) != 1 || !check(input[0]))
-    return 0;
-  return 1;
-}
+// --- Constants and Data ---
 
-// Add after validate_input function
-int validate_multi_char_input(char *input, size_t size, int (*check)(int))
-{
-  input[strcspn(input, "\n")] = '\0';
-  if (input[0] == '\0')
-    return 0;
-  for (int i = 0; input[i] != '\0'; i++)
-    if (!check(input[i]))
-      return 0;
-  return 1;
-}
+// Maximum number of incorrect guesses allowed
+#define MAX_NUM_INCORRECT_GUESSES 6
+// Maximum length of a word (including null terminator)
+#define MAX_WORD_LENGTH 50
+// Total number of categories for word selection
+#define TOTAL_CATEGORIES 10
+// Total number of words across all categories
+#define TOTAL_WORDS 182
 
-// check operating system of user and define clear screen command
+// Clear screen command based on operating system
 #ifdef _WIN32
 #define CLEAR_SCREEN "cls"
 #else
 #define CLEAR_SCREEN "clear"
 #endif
 
-// Define constant for maximum number of incorrect guesses allowed
-#define MAX_NUM_INCORRECT_GUESSES 6
-#define MAX_WORD_LENGTH 50
-
-// Define different categories for the player to choose a word from
-// These are arrays of pointers, where each pointer points to the first letter of a word
+// Word lists for each category
 const char *bible_names[] = {"adam", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron", "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus", "cain"};
 const char *animals[] = {"tiger", "elephant", "giraffe", "zebra", "lion", "bear", "wolf", "deer", "rhino", "hippo", "cheetah", "panther", "eagle", "hawk", "snake", "turtle", "crocodile", "lemur", "monkey", "panda"};
 const char *toys[] = {"doll", "truck", "puzzle", "ball", "kite", "train", "blocks", "robot", "teddy", "boat", "plane", "marble", "lego", "frisbee", "scooter", "wagon", "rocket", "yoyo"};
@@ -50,114 +37,78 @@ const char *colors[] = {"blue", "green", "yellow", "purple", "orange", "black", 
 const char *jobs[] = {"doctor", "teacher", "engineer", "lawyer", "chef", "pilot", "artist", "nurse", "farmer", "writer", "actor", "singer", "fireman", "plumber", "electrician", "mechanic", "scientist", "programmer", "architect"};
 const char *superheroes[] = {"batman", "superman", "spiderman", "ironman", "thor", "hulk", "wonderwoman", "flash", "aquaman", "blackwidow", "hawkeye", "robin", "antman"};
 
-// All categories for random word suggestions
-const char **all_categories[] = {
-    bible_names,
-    animals,
-    toys,
-    plants,
-    megaman,
-    star_wars,
-    lord_of_the_rings,
-    colors,
-    jobs,
-    superheroes};
+// Array of all category word lists
+const char **all_categories[] = {bible_names, animals, toys, plants, megaman, star_wars, lord_of_the_rings, colors, jobs, superheroes};
 
+// Sizes of each category word list
 const int category_sizes[] = {
-    sizeof(bible_names) / sizeof(bible_names[0]),
-    sizeof(animals) / sizeof(animals[0]),
-    sizeof(toys) / sizeof(toys[0]),
-    sizeof(plants) / sizeof(plants[0]),
-    sizeof(megaman) / sizeof(megaman[0]),
-    sizeof(star_wars) / sizeof(star_wars[0]),
-    sizeof(lord_of_the_rings) / sizeof(lord_of_the_rings[0]),
-    sizeof(colors) / sizeof(colors[0]),
-    sizeof(jobs) / sizeof(jobs[0]),
-    sizeof(superheroes) / sizeof(superheroes[0])};
+    sizeof(bible_names) / sizeof(bible_names[0]), sizeof(animals) / sizeof(animals[0]),
+    sizeof(toys) / sizeof(toys[0]), sizeof(plants) / sizeof(plants[0]),
+    sizeof(megaman) / sizeof(megaman[0]), sizeof(star_wars) / sizeof(star_wars[0]),
+    sizeof(lord_of_the_rings) / sizeof(lord_of_the_rings[0]), sizeof(colors) / sizeof(colors[0]),
+    sizeof(jobs) / sizeof(jobs[0]), sizeof(superheroes) / sizeof(superheroes[0])};
 
-const char *category_names[] = {
-    "Bible Names", "Animals", "Toys", "Plants", "Megaman",
-    "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
+// Category names for display
+const char *category_names[] = {"Bible Names", "Animals", "Toys", "Plants", "Megaman", "Star Wars", "Lord of the Rings", "Colors", "Jobs", "Superheroes"};
 
-#define TOTAL_CATEGORIES (sizeof(all_categories) / sizeof(all_categories[0]))
-#define TOTAL_WORDS 182 // Precalculated total words across all categories
+// --- Utility Functions ---
 
-// Function to display the hangman state based on incorrect guesses
+// Validates a single-character input against a check function (e.g., isalpha, isdigit)
+// Returns 1 if valid, 0 otherwise
+int validate_input(char *input, size_t size, int (*check)(int))
+{
+  input[strcspn(input, "\n")] = '\0';
+  if (strlen(input) != 1 || !check(input[0]))
+    return 0;
+  return 1;
+}
+
+// Validates a multi-character input (e.g., a word) against a check function
+// Returns 1 if all characters are valid, 0 if empty or any character fails
+int validate_multi_char_input(char *input, size_t size, int (*check)(int))
+{
+  input[strcspn(input, "\n")] = '\0';
+  if (input[0] == '\0')
+    return 0;
+  for (int i = 0; input[i] != '\0'; i++)
+    if (!check(input[i]))
+      return 0;
+  return 1;
+}
+
+// --- Game Display Functions ---
+
+// Displays the hangman ASCII art based on the number of incorrect guesses
 void draw_hangman(int num_incorrect_guesses)
 {
-  // Print the number of wrong guesses remaining
   printf("Wrong guesses remaining: %d\n", MAX_NUM_INCORRECT_GUESSES - num_incorrect_guesses);
-
-  // Display ASCII art based on the number of incorrect guesses
   switch (num_incorrect_guesses)
   {
   case 0:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n      |\n      |\n      |\n      |\n========\n");
     break;
   case 1:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("  O   |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n  O   |\n      |\n      |\n      |\n========\n");
     break;
   case 2:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("  O   |\n");
-    printf("  |   |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n  O   |\n  |   |\n      |\n      |\n========\n");
     break;
   case 3:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("  O   |\n");
-    printf(" /|   |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n  O   |\n /|   |\n      |\n      |\n========\n");
     break;
   case 4:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("  O   |\n");
-    printf(" /|\\  |\n");
-    printf("      |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n========\n");
     break;
   case 5:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("  O   |\n");
-    printf(" /|\\  |\n");
-    printf(" /    |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n========\n");
     break;
   case 6:
-    printf("  _____\n");
-    printf("  |   |\n");
-    printf("  O   |\n");
-    printf(" /|\\  |\n");
-    printf(" / \\  |\n");
-    printf("      |\n");
-    printf("========\n");
+    printf("  _____\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========\n");
     break;
   }
 }
 
-// Function to display word progress with spaces between letters
+// Displays the current state of the word with spaces between letters
 void display_word_progress(const char *word_progress, int word_len)
 {
   printf("\nWord: ");
@@ -168,7 +119,7 @@ void display_word_progress(const char *word_progress, int word_len)
   printf("\n");
 }
 
-// Function to display incorrect letters
+// Displays letters guessed that are not in the word
 void display_incorrect_letters(const char *guessed_letters, int num_guessed_letters, const char *word, int word_len)
 {
   printf("Incorrect guesses: ");
@@ -195,7 +146,10 @@ void display_incorrect_letters(const char *guessed_letters, int num_guessed_lett
   printf("\n");
 }
 
-// Function to handle category selection and setup
+// --- Game Logic Functions ---
+
+// Prompts the user to select a category and returns the word list
+// Sets category_choice, category_choice_str, and num_words
 const char **select_category(int *category_choice, char *category_choice_str, int *num_words)
 {
   printf("\nPlease choose a category. Enter the number of your choice...\n");
@@ -225,16 +179,15 @@ const char **select_category(int *category_choice, char *category_choice_str, in
   return all_categories[*category_choice - 1];
 }
 
-// Function to get custom word from Player 1 in two-player mode and return category name
+// Prompts Player 1 to input a custom word or select from random suggestions in two-player mode
+// Stores the chosen word in custom_word and sets category_choice_str
 void get_custom_word(char *custom_word, char *category_choice_str)
 {
   char input[MAX_WORD_LENGTH];
   int valid = 0;
-
   while (!valid)
   {
     printf("\nPlayer 2, please look away while Player 1 selects the word.\n");
-
     printf("Player 1, do you want to enter a custom word (1) or choose from 10 random suggestions (2)? ");
     char mode_choice_input[256];
     fgets(mode_choice_input, sizeof(mode_choice_input), stdin);
@@ -249,10 +202,8 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       printf("\nInvalid choice. Please enter 1 or 2.\n");
       continue;
     }
-
     if (mode_choice == 1)
     {
-      // Custom word input
       printf("Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
       fgets(input, sizeof(input), stdin);
       if (!validate_multi_char_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
@@ -260,7 +211,6 @@ void get_custom_word(char *custom_word, char *category_choice_str)
         printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
         continue;
       }
-      // Convert to lowercase
       for (int i = 0; input[i] != '\0'; i++)
       {
         input[i] = tolower(input[i]);
@@ -269,12 +219,9 @@ void get_custom_word(char *custom_word, char *category_choice_str)
     }
     else
     {
-      // Suggestions
       printf("Here are 10 random word suggestions:\n");
-
       char suggested_words[10][MAX_WORD_LENGTH];
       int category_indices[10];
-
       for (int c = 0; c < TOTAL_CATEGORIES; c++)
       {
         int idx = rand() % category_sizes[c];
@@ -282,7 +229,6 @@ void get_custom_word(char *custom_word, char *category_choice_str)
         category_indices[c] = c;
         printf("%d. %s\n", c + 1, suggested_words[c]);
       }
-
       printf("Choose a word by entering its number (1-10): ");
       char choice_input[256];
       fgets(choice_input, sizeof(choice_input), stdin);
@@ -297,12 +243,9 @@ void get_custom_word(char *custom_word, char *category_choice_str)
         printf("\nInvalid choice. Please try again.\n");
         continue;
       }
-
       strcpy(input, suggested_words[choice]);
       strcpy(category_choice_str, category_names[category_indices[choice]]);
     }
-
-    // Confirm the word with Player 1
     printf("\nYour word: %s\nIs this correct? (y/n): ", input);
     char confirm[256];
     fgets(confirm, sizeof(confirm), stdin);
@@ -314,7 +257,7 @@ void get_custom_word(char *custom_word, char *category_choice_str)
     if (tolower(confirm[0]) == 'y')
     {
       valid = 1;
-      system(CLEAR_SCREEN); // Clear the screen after confirmation
+      system(CLEAR_SCREEN);
       printf("\nPlayer 2, you can look back now.\n");
     }
     else
@@ -322,12 +265,11 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       printf("\nPlease select again.\n");
     }
   }
-
-  // Copy to custom_word
   strcpy(custom_word, input);
 }
 
-// Add after the display_incorrect_letters function and before the main function
+// Runs the main game loop, handling guesses and updating game state
+// Parameters: game_mode (1 for single-player, 2 for two-player), word (the target word), category_choice_str (category name)
 void play_game(int game_mode, const char *word, const char *category_choice_str)
 {
   int word_len = strlen(word);
@@ -337,7 +279,6 @@ void play_game(int game_mode, const char *word, const char *category_choice_str)
   int num_incorrect_guesses = 0;
   char guessed_letters[26] = {0};
   int num_guessed_letters = 0;
-
   while (num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
   {
     printf("\nCategory: %s\n", category_choice_str);
@@ -387,20 +328,17 @@ void play_game(int game_mode, const char *word, const char *category_choice_str)
   printf("\n%sYou lose! The word was: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
 }
 
+// --- Main Function ---
+
+// Entry point for the Hangman game
+// Manages game setup, mode selection, and replay loop
 int main()
 {
-  // Display welcome message
   printf("\nWelcome to Hangman!\n");
-
-  // Seed random number generator with current time for varied word selection
   srand(time(NULL));
-
-  // Variable to control replay loop
   char play_again = 'y';
-  // Continue playing as long as the user enters 'y' or 'Y'
   while (tolower(play_again) == 'y')
   {
-    // Prompt for game mode
     printf("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ");
     char mode_input[256];
     fgets(mode_input, sizeof(mode_input), stdin);
@@ -410,32 +348,21 @@ int main()
       mode_input[0] = '1';
     }
     int game_mode = atoi(mode_input);
-
-    // Variables for category selection and game setup
     int category_choice = 0;
     char category_choice_str[256] = "";
     int num_words = 0;
     char word[MAX_WORD_LENGTH];
-    int word_len;
-
     if (game_mode == 1)
     {
-      // Single-player mode: select category and random word
       const char **selected_words = select_category(&category_choice, category_choice_str, &num_words);
       strcpy(word, selected_words[rand() % num_words]);
-      word_len = strlen(word);
     }
     else
     {
-      // Two-player mode: Player 1 inputs a custom word or selects from suggestions
       get_custom_word(word, category_choice_str);
-      word_len = strlen(word);
     }
-
-    // Replace the entire game loop in main (from the declaration of word_progress to before the play_again prompt)
+    int word_len = strlen(word);
     play_game(game_mode, word, category_choice_str);
-
-    // Prompt to play again
     printf("Would you like to play again? (y/n): ");
     char input[256];
     fgets(input, sizeof(input), stdin);
@@ -446,12 +373,9 @@ int main()
     }
     else
     {
-      // Store first character of input as play_again choice
       play_again = tolower(input[0]);
     }
   }
-
-  // Display exit message when player chooses not to replay
   printf("\nThanks for playing!\n");
   return 0;
 }
