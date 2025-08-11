@@ -5,8 +5,17 @@
 #include <ctype.h>
 #include <time.h>
 
-// Validate input: trim newline, check if it matches expected format
+// Replace the existing validate_input function
 int validate_input(char *input, size_t size, int (*check)(int))
+{
+  input[strcspn(input, "\n")] = '\0';
+  if (strlen(input) != 1 || !check(input[0]))
+    return 0;
+  return 1;
+}
+
+// Add after validate_input function
+int validate_multi_char_input(char *input, size_t size, int (*check)(int))
 {
   input[strcspn(input, "\n")] = '\0';
   if (input[0] == '\0')
@@ -30,57 +39,16 @@ int validate_input(char *input, size_t size, int (*check)(int))
 
 // Define different categories for the player to choose a word from
 // These are arrays of pointers, where each pointer points to the first letter of a word
-const char *bible_names[] = {
-    "adam", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron",
-    "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus", "cain"};
-
-const char *animals[] = {
-    "tiger", "elephant", "giraffe", "zebra", "lion", "bear", "wolf", "deer", "rhino",
-    "hippo", "cheetah", "panther", "eagle", "hawk", "snake", "turtle", "crocodile", "lemur", "monkey", "panda"};
-
-const char *toys[] = {
-    "doll", "truck", "puzzle", "ball", "kite", "train", "blocks", "robot", "teddy",
-    "boat", "plane", "marble", "lego", "frisbee", "scooter", "wagon", "rocket", "yoyo"};
-
-const char *plants[] = {
-    "tree", "flower", "grass", "bush", "cactus", "vine", "rose", "tulip", "daisy", "lily",
-    "fern", "moss", "bamboo", "pine", "maple", "clover", "sunflower", "willow", "orchid"};
-
-const char *megaman[] = {
-    "megaman", "roll", "gutsman", "freezeman", "cutman", "shadowman", "elecman", "torchman",
-    "protoman", "bass", "glide", "higsby", "chaud",
-    "wily", "chip", "netbattle", "rush", "mayl", "gateman"};
-
-const char *star_wars[] = {
-    "luke", "leia", "vader", "yoda", "obiwan", "chewbacca", "kyber", "force", "palpatine",
-    "anakin", "padme", "maul", "jango", "boba", "lando", "solo"};
-
-const char *lord_of_the_rings[] = {
-    "frodo", "gandalf", "aragorn", "legolas", "gimli", "boromir", "samwise", "merry", "pippin",
-    "bilbo", "sauron", "gollum", "saruman", "elrond", "galadriel", "theoden", "eowyn", "faramir", "denethor"};
-
-const char *colors[] = {
-    "blue", "green", "yellow", "purple", "orange", "black", "white", "brown", "silver", "gold",
-    "indigo", "violet", "magenta", "cyan", "turquoise", "lavender", "maroon", "olive", "teal"};
-
-const char *jobs[] = {
-    "doctor", "teacher", "engineer", "lawyer", "chef", "pilot", "artist", "nurse", "farmer", "writer",
-    "actor", "singer", "fireman", "plumber", "electrician", "mechanic", "scientist", "programmer", "architect"};
-
-const char *superheroes[] = {
-    "batman",
-    "superman",
-    "spiderman",
-    "ironman",
-    "thor",
-    "hulk",
-    "wonderwoman",
-    "flash",
-    "aquaman",
-    "blackwidow",
-    "hawkeye",
-    "robin",
-    "antman"};
+const char *bible_names[] = {"adam", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron", "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus", "cain"};
+const char *animals[] = {"tiger", "elephant", "giraffe", "zebra", "lion", "bear", "wolf", "deer", "rhino", "hippo", "cheetah", "panther", "eagle", "hawk", "snake", "turtle", "crocodile", "lemur", "monkey", "panda"};
+const char *toys[] = {"doll", "truck", "puzzle", "ball", "kite", "train", "blocks", "robot", "teddy", "boat", "plane", "marble", "lego", "frisbee", "scooter", "wagon", "rocket", "yoyo"};
+const char *plants[] = {"tree", "flower", "grass", "bush", "cactus", "vine", "rose", "tulip", "daisy", "lily", "fern", "moss", "bamboo", "pine", "maple", "clover", "sunflower", "willow", "orchid"};
+const char *megaman[] = {"megaman", "roll", "gutsman", "freezeman", "cutman", "shadowman", "elecman", "torchman", "protoman", "bass", "glide", "higsby", "chaud", "wily", "chip", "netbattle", "rush", "mayl", "gateman"};
+const char *star_wars[] = {"luke", "leia", "vader", "yoda", "obiwan", "chewbacca", "kyber", "force", "palpatine", "anakin", "padme", "maul", "jango", "boba", "lando", "solo"};
+const char *lord_of_the_rings[] = {"frodo", "gandalf", "aragorn", "legolas", "gimli", "boromir", "samwise", "merry", "pippin", "bilbo", "sauron", "gollum", "saruman", "elrond", "galadriel", "theoden", "eowyn", "faramir", "denethor"};
+const char *colors[] = {"blue", "green", "yellow", "purple", "orange", "black", "white", "brown", "silver", "gold", "indigo", "violet", "magenta", "cyan", "turquoise", "lavender", "maroon", "olive", "teal"};
+const char *jobs[] = {"doctor", "teacher", "engineer", "lawyer", "chef", "pilot", "artist", "nurse", "farmer", "writer", "actor", "singer", "fireman", "plumber", "electrician", "mechanic", "scientist", "programmer", "architect"};
+const char *superheroes[] = {"batman", "superman", "spiderman", "ironman", "thor", "hulk", "wonderwoman", "flash", "aquaman", "blackwidow", "hawkeye", "robin", "antman"};
 
 // All categories for random word suggestions
 const char **all_categories[] = {
@@ -354,7 +322,7 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       // Custom word input
       printf("Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
       fgets(input, sizeof(input), stdin);
-      if (!validate_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
+      if (!validate_multi_char_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
       {
         printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
         continue;
@@ -426,6 +394,66 @@ void get_custom_word(char *custom_word, char *category_choice_str)
   strcpy(custom_word, input);
 }
 
+// Add after the display_incorrect_letters function and before the main function
+void play_game(int game_mode, const char *word, const char *category_choice_str)
+{
+  int word_len = strlen(word);
+  char word_progress[MAX_WORD_LENGTH];
+  memset(word_progress, '_', word_len);
+  word_progress[word_len] = '\0';
+  int num_incorrect_guesses = 0;
+  char guessed_letters[26] = {0};
+  int num_guessed_letters = 0;
+
+  while (num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
+  {
+    printf("\nCategory: %s\n", category_choice_str);
+    printf("%d letter word\n", word_len);
+    display_incorrect_letters(guessed_letters, num_guessed_letters, word, word_len);
+    draw_hangman(num_incorrect_guesses);
+    display_word_progress(word_progress, word_len);
+    printf("\n%sGuess a letter: ", game_mode == 2 ? "Player 2, " : "");
+    char input[256];
+    fgets(input, sizeof(input), stdin);
+    if (!validate_input(input, sizeof(input), isalpha))
+    {
+      printf("\nInvalid input. Please enter a letter.\n");
+      continue;
+    }
+    char guess = tolower(input[0]);
+    if (strchr(guessed_letters, guess))
+    {
+      printf("\nOops, already guessed that letter. Try a new letter.\n");
+      continue;
+    }
+    guessed_letters[num_guessed_letters++] = guess;
+    int guess_found = 0, count = 0;
+    for (int i = 0; i < word_len; i++)
+    {
+      if (word[i] == guess)
+      {
+        word_progress[i] = guess;
+        count++;
+      }
+    }
+    guess_found = count > 0;
+    printf("\n%s %s %d %c%s\n", guess_found ? "Yes," : "Sorry,",
+           count == 1 ? "there is" : "there are", count, guess, count == 1 ? "." : "'s.");
+    if (!guess_found)
+      num_incorrect_guesses++;
+    if (strcmp(word_progress, word) == 0)
+    {
+      printf("\n%sYou win! Word: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
+      return;
+    }
+  }
+  printf("\nCategory: %s\n", category_choice_str);
+  printf("%d letter word\n", word_len);
+  draw_hangman(num_incorrect_guesses);
+  display_word_progress(word_progress, word_len);
+  printf("\n%sYou lose! The word was: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
+}
+
 int main()
 {
   // Display welcome message
@@ -471,106 +499,8 @@ int main()
       word_len = strlen(word);
     }
 
-    // Create array to track word progress with underscores
-    char word_progress[MAX_WORD_LENGTH];
-    memset(word_progress, '_', word_len);
-    word_progress[word_len] = '\0';
-    // Track number of incorrect guesses
-    int num_incorrect_guesses = 0;
-    // Array to store guessed letters, initialized to null
-    char guessed_letters[26] = {0};
-    // Track number of unique guessed letters
-    int num_guessed_letters = 0;
-
-    // Main game loop: continues until max incorrect guesses reached
-    while (num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
-    {
-      // Display game state
-      printf("\nCategory: %s\n", category_choice_str);
-      printf("%d letter word\n", word_len);
-      display_incorrect_letters(guessed_letters, num_guessed_letters, word, word_len);
-      draw_hangman(num_incorrect_guesses);
-      display_word_progress(word_progress, word_len);
-      // Prompt for letter guess
-      printf("\n%sGuess a letter: ", game_mode == 2 ? "Player 2, " : "");
-      // Buffer for user input
-      char input[256];
-      fgets(input, sizeof(input), stdin);
-      if (!validate_input(input, sizeof(input), isalpha))
-      {
-        printf("\nInvalid input. Please enter a letter.\n");
-        continue;
-      }
-      // Variable to store the guessed letter
-      char guess = '\0';
-      int char_count = 0;
-      for (int i = 0; input[i] != '\0'; i++)
-      {
-        if (guess == '\0')
-        {
-          // Convert guess to lowercase
-          guess = tolower(input[i]);
-        }
-        char_count++;
-      }
-      // Check for multiple letters
-      if (char_count > 1)
-      {
-        printf("\nPlease enter only one letter. Try again.\n");
-        continue;
-      }
-      // Check if letter was already guessed
-      if (strchr(guessed_letters, guess))
-      {
-        printf("\nOops, already guessed that letter. Try a new letter.\n");
-        continue;
-      }
-      // Add valid guess to guessed letters
-      guessed_letters[num_guessed_letters] = guess;
-      num_guessed_letters++;
-
-      // Check if guess is in the word
-      int guess_found = 0;
-      int count = 0;
-      for (int i = 0; i < word_len; i++)
-      {
-        if (word[i] == guess)
-        {
-          // Update word progress with correct guess
-          word_progress[i] = guess;
-          count++;
-        }
-      }
-      guess_found = (count > 0) ? 1 : 0;
-
-      // Display result of guess
-      if (guess_found == 1)
-      {
-        printf("\nYes, there %s %d %c%s\n", (count == 1) ? "is" : "are", count, guess, (count == 1) ? "." : "'s.");
-      }
-      if (guess_found == 0)
-      {
-        printf("\nSorry, no %c\n", guess);
-        // Increment incorrect guess count
-        num_incorrect_guesses++;
-      }
-      // Check if the word has been fully guessed
-      if (strcmp(word_progress, word) == 0)
-      {
-        // Display win message and exit game loop
-        printf("\n%sYou win! Word: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
-        break;
-      }
-    }
-    // If max incorrect guesses reached, display lose message
-    if (num_incorrect_guesses >= MAX_NUM_INCORRECT_GUESSES)
-    {
-      printf("\nCategory: %s\n", category_choice_str);
-      printf("%d letter word\n", word_len);
-      draw_hangman(num_incorrect_guesses);
-      display_word_progress(word_progress, word_len);
-      printf("\n%sYou lose! The word was: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
-    }
+    // Replace the entire game loop in main (from the declaration of word_progress to before the play_again prompt)
+    play_game(game_mode, word, category_choice_str);
 
     // Prompt to play again
     printf("Would you like to play again? (y/n): ");
