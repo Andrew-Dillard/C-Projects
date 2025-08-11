@@ -1,5 +1,6 @@
 // Hangman game implementation in C
-// Supports single-player and two-player modes
+// A word-guessing game where players guess letters to complete a hidden word
+// Supports single-player (random word from category) and two-player (custom word) modes
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +18,8 @@
 #define TOTAL_CATEGORIES 10
 // Total number of words across all categories
 #define TOTAL_WORDS 182
+// Maximum length of category name
+#define MAX_CATEGORY_NAME 256
 
 // Clear screen command based on operating system
 #ifdef _WIN32
@@ -24,6 +27,20 @@
 #else
 #define CLEAR_SCREEN "clear"
 #endif
+
+// Game state structure
+typedef struct
+{
+  char word[MAX_WORD_LENGTH];                  // The target word to guess
+  char word_progress[MAX_WORD_LENGTH];         // Current state of guessed letters
+  char guessed_letters[26];                    // Letters guessed by the player
+  int num_incorrect_guesses;                   // Number of incorrect guesses
+  int num_guessed_letters;                     // Number of unique letters guessed
+  int word_len;                                // Length of the target word
+  int game_mode;                               // 1 for single-player, 2 for two-player
+  char category_choice_str[MAX_CATEGORY_NAME]; // Name of the selected category
+  int num_words;                               // Number of words in the selected category
+} GameState;
 
 // Word lists for each category
 const char *bible_names[] = {"adam", "noah", "abraham", "sarah", "isaac", "jacob", "joseph", "moses", "aaron", "david", "solomon", "elijah", "elisha", "ruth", "esther", "daniel", "jonah", "mary", "jesus", "cain"};
@@ -109,27 +126,27 @@ void draw_hangman(int num_incorrect_guesses)
 }
 
 // Displays the current state of the word with spaces between letters
-void display_word_progress(const char *word_progress, int word_len)
+void display_word_progress(const GameState *state)
 {
   printf("\nWord: ");
-  for (int i = 0; i < word_len; i++)
+  for (int i = 0; i < state->word_len; i++)
   {
-    printf("%c ", word_progress[i]);
+    printf("%c ", state->word_progress[i]);
   }
   printf("\n");
 }
 
 // Displays letters guessed that are not in the word
-void display_incorrect_letters(const char *guessed_letters, int num_guessed_letters, const char *word, int word_len)
+void display_incorrect_letters(const GameState *state)
 {
   printf("Incorrect guesses: ");
   int found = 0;
-  for (int i = 0; i < num_guessed_letters; i++)
+  for (int i = 0; i < state->num_guessed_letters; i++)
   {
     int in_word = 0;
-    for (int j = 0; j < word_len; j++)
+    for (int j = 0; j < state->word_len; j++)
     {
-      if (guessed_letters[i] == word[j])
+      if (state->guessed_letters[i] == state->word[j])
       {
         in_word = 1;
         break;
@@ -137,7 +154,7 @@ void display_incorrect_letters(const char *guessed_letters, int num_guessed_lett
     }
     if (!in_word)
     {
-      printf("%c ", guessed_letters[i]);
+      printf("%c ", state->guessed_letters[i]);
       found = 1;
     }
   }
@@ -149,8 +166,8 @@ void display_incorrect_letters(const char *guessed_letters, int num_guessed_lett
 // --- Game Logic Functions ---
 
 // Prompts the user to select a category and returns the word list
-// Sets category_choice, category_choice_str, and num_words
-const char **select_category(int *category_choice, char *category_choice_str, int *num_words)
+// Sets category_choice and num_words, stores category name in state
+const char **select_category(int *category_choice, GameState *state)
 {
   printf("\nPlease choose a category. Enter the number of your choice...\n");
   for (int i = 0; i < TOTAL_CATEGORIES; i++)
@@ -174,14 +191,14 @@ const char **select_category(int *category_choice, char *category_choice_str, in
       *category_choice = 1;
     }
   }
-  *num_words = category_sizes[*category_choice - 1];
-  strcpy(category_choice_str, category_names[*category_choice - 1]);
+  state->num_words = category_sizes[*category_choice - 1];
+  strcpy(state->category_choice_str, category_names[*category_choice - 1]);
   return all_categories[*category_choice - 1];
 }
 
 // Prompts Player 1 to input a custom word or select from random suggestions in two-player mode
-// Stores the chosen word in custom_word and sets category_choice_str
-void get_custom_word(char *custom_word, char *category_choice_str)
+// Stores the chosen word and category name in state
+void get_custom_word(GameState *state)
 {
   char input[MAX_WORD_LENGTH];
   int valid = 0;
@@ -215,7 +232,7 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       {
         input[i] = tolower(input[i]);
       }
-      strcpy(category_choice_str, "Custom Word");
+      strcpy(state->category_choice_str, "Custom Word");
     }
     else
     {
@@ -244,7 +261,7 @@ void get_custom_word(char *custom_word, char *category_choice_str)
         continue;
       }
       strcpy(input, suggested_words[choice]);
-      strcpy(category_choice_str, category_names[category_indices[choice]]);
+      strcpy(state->category_choice_str, category_names[category_indices[choice]]);
     }
     printf("\nYour word: %s\nIs this correct? (y/n): ", input);
     char confirm[256];
@@ -265,28 +282,26 @@ void get_custom_word(char *custom_word, char *category_choice_str)
       printf("\nPlease select again.\n");
     }
   }
-  strcpy(custom_word, input);
+  strcpy(state->word, input);
+  state->word_len = strlen(state->word);
 }
 
 // Runs the main game loop, handling guesses and updating game state
-// Parameters: game_mode (1 for single-player, 2 for two-player), word (the target word), category_choice_str (category name)
-void play_game(int game_mode, const char *word, const char *category_choice_str)
+void play_game(GameState *state)
 {
-  int word_len = strlen(word);
-  char word_progress[MAX_WORD_LENGTH];
-  memset(word_progress, '_', word_len);
-  word_progress[word_len] = '\0';
-  int num_incorrect_guesses = 0;
-  char guessed_letters[26] = {0};
-  int num_guessed_letters = 0;
-  while (num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
+  memset(state->word_progress, '_', state->word_len);
+  state->word_progress[state->word_len] = '\0';
+  state->num_incorrect_guesses = 0;
+  state->num_guessed_letters = 0;
+  memset(state->guessed_letters, 0, 26);
+  while (state->num_incorrect_guesses < MAX_NUM_INCORRECT_GUESSES)
   {
-    printf("\nCategory: %s\n", category_choice_str);
-    printf("%d letter word\n", word_len);
-    display_incorrect_letters(guessed_letters, num_guessed_letters, word, word_len);
-    draw_hangman(num_incorrect_guesses);
-    display_word_progress(word_progress, word_len);
-    printf("\n%sGuess a letter: ", game_mode == 2 ? "Player 2, " : "");
+    printf("\nCategory: %s\n", state->category_choice_str);
+    printf("%d letter word\n", state->word_len);
+    display_incorrect_letters(state);
+    draw_hangman(state->num_incorrect_guesses);
+    display_word_progress(state);
+    printf("\n%sGuess a letter: ", state->game_mode == 2 ? "Player 2, " : "");
     char input[256];
     fgets(input, sizeof(input), stdin);
     if (!validate_input(input, sizeof(input), isalpha))
@@ -295,18 +310,18 @@ void play_game(int game_mode, const char *word, const char *category_choice_str)
       continue;
     }
     char guess = tolower(input[0]);
-    if (strchr(guessed_letters, guess))
+    if (strchr(state->guessed_letters, guess))
     {
       printf("\nOops, already guessed that letter. Try a new letter.\n");
       continue;
     }
-    guessed_letters[num_guessed_letters++] = guess;
+    state->guessed_letters[state->num_guessed_letters++] = guess;
     int guess_found = 0, count = 0;
-    for (int i = 0; i < word_len; i++)
+    for (int i = 0; i < state->word_len; i++)
     {
-      if (word[i] == guess)
+      if (state->word[i] == guess)
       {
-        word_progress[i] = guess;
+        state->word_progress[i] = guess;
         count++;
       }
     }
@@ -314,18 +329,19 @@ void play_game(int game_mode, const char *word, const char *category_choice_str)
     printf("\n%s %s %d %c%s\n", guess_found ? "Yes," : "Sorry,",
            count == 1 ? "there is" : "there are", count, guess, count == 1 ? "." : "'s.");
     if (!guess_found)
-      num_incorrect_guesses++;
-    if (strcmp(word_progress, word) == 0)
+      state->num_incorrect_guesses++;
+    if (strcmp(state->word_progress, state->word) == 0)
     {
-      printf("\n%sYou win! Word: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
+      printf("\n%sYou win! Word: %s\n\n", state->game_mode == 2 ? "Player 2, " : "", state->word);
       return;
     }
   }
-  printf("\nCategory: %s\n", category_choice_str);
-  printf("%d letter word\n", word_len);
-  draw_hangman(num_incorrect_guesses);
-  display_word_progress(word_progress, word_len);
-  printf("\n%sYou lose! The word was: %s\n\n", game_mode == 2 ? "Player 2, " : "", word);
+  printf("\nCategory: %s\n", state->category_choice_str);
+  printf("%d letter word\n", state->word_len);
+  display_incorrect_letters(state);
+  draw_hangman(state->num_incorrect_guesses);
+  display_word_progress(state);
+  printf("\n%sYou lose! The word was: %s\n\n", state->game_mode == 2 ? "Player 2, " : "", state->word);
 }
 
 // --- Main Function ---
@@ -339,30 +355,31 @@ int main()
   char play_again = 'y';
   while (tolower(play_again) == 'y')
   {
+    GameState state = {0}; // Initialize all fields to zero
     printf("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ");
     char mode_input[256];
     fgets(mode_input, sizeof(mode_input), stdin);
     if (!validate_input(mode_input, sizeof(mode_input), isdigit) || (mode_input[0] != '1' && mode_input[0] != '2'))
     {
       printf("\nInvalid mode. Defaulting to Single Player.\n");
-      mode_input[0] = '1';
-    }
-    int game_mode = atoi(mode_input);
-    int category_choice = 0;
-    char category_choice_str[256] = "";
-    int num_words = 0;
-    char word[MAX_WORD_LENGTH];
-    if (game_mode == 1)
-    {
-      const char **selected_words = select_category(&category_choice, category_choice_str, &num_words);
-      strcpy(word, selected_words[rand() % num_words]);
+      state.game_mode = 1;
     }
     else
     {
-      get_custom_word(word, category_choice_str);
+      state.game_mode = atoi(mode_input);
     }
-    int word_len = strlen(word);
-    play_game(game_mode, word, category_choice_str);
+    int category_choice = 0;
+    if (state.game_mode == 1)
+    {
+      const char **selected_words = select_category(&category_choice, &state);
+      strcpy(state.word, selected_words[rand() % state.num_words]);
+      state.word_len = strlen(state.word);
+    }
+    else
+    {
+      get_custom_word(&state);
+    }
+    play_game(&state);
     printf("Would you like to play again? (y/n): ");
     char input[256];
     fgets(input, sizeof(input), stdin);
