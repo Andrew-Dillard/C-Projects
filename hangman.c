@@ -443,17 +443,12 @@ int main()
     printf("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ");
     char mode_input[256];
     fgets(mode_input, sizeof(mode_input), stdin);
-    if (!validate_input(mode_input, sizeof(mode_input), isdigit))
+    if (!validate_input(mode_input, sizeof(mode_input), isdigit) || (mode_input[0] != '1' && mode_input[0] != '2'))
     {
       printf("\nInvalid mode. Defaulting to Single Player.\n");
       mode_input[0] = '1';
     }
     int game_mode = atoi(mode_input);
-    if (game_mode != 1 && game_mode != 2)
-    {
-      printf("\nInvalid mode. Defaulting to Single Player.\n");
-      game_mode = 1;
-    }
 
     // Variables for category selection and game setup
     int category_choice = 0;
