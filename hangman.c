@@ -201,95 +201,32 @@ void display_incorrect_letters(const char *guessed_letters, int num_guessed_lett
 // Function to handle category selection and setup
 void select_category(int *category_choice, char *category_choice_str, int *num_words)
 {
-  // Prompt user to choose a category by entering a number
   printf("\nPlease choose a category. Enter the number of your choice...\n");
-  printf("\n1. Bible Names\n");
-  printf("2. Animals\n");
-  printf("3. Toys\n");
-  printf("4. Plants\n");
-  printf("5. Megaman\n");
-  printf("6. Star Wars\n");
-  printf("7. Lord of the Rings\n");
-  printf("8. Colors\n");
-  printf("9. Jobs\n");
-  printf("10. Superheroes\n\n");
-
-  // Buffer to store user input for category choice
-  char category_input[256];
-  fgets(category_input, sizeof(category_input), stdin);
-  if (!validate_input(category_input, sizeof(category_input), isdigit))
+  printf("\n");
+  for (int i = 0; i < TOTAL_CATEGORIES; i++)
+  {
+    printf("%d. %s\n", i + 1, category_names[i]);
+  }
+  printf("\n");
+  char input[256];
+  fgets(input, sizeof(input), stdin);
+  if (!validate_input(input, sizeof(input), isdigit))
   {
     printf("\nInvalid category. Defaulting to Bible Names.\n");
-    words = bible_names;
-    *num_words = sizeof(bible_names) / sizeof(bible_names[0]);
-    strcpy(category_choice_str, category_names[0]);
     *category_choice = 1;
-    return;
   }
-  *category_choice = atoi(category_input);
-
-  // Assign the appropriate word list and category details based on user choice
-  switch (*category_choice)
+  else
   {
-  case 1:
-    words = bible_names;
-    *num_words = sizeof(bible_names) / sizeof(bible_names[0]);
-    strcpy(category_choice_str, category_names[0]);
-    break;
-  case 2:
-    words = animals;
-    *num_words = sizeof(animals) / sizeof(animals[0]);
-    strcpy(category_choice_str, category_names[1]);
-    break;
-  case 3:
-    words = toys;
-    *num_words = sizeof(toys) / sizeof(toys[0]);
-    strcpy(category_choice_str, category_names[2]);
-    break;
-  case 4:
-    words = plants;
-    *num_words = sizeof(plants) / sizeof(plants[0]);
-    strcpy(category_choice_str, category_names[3]);
-    break;
-  case 5:
-    words = megaman;
-    *num_words = sizeof(megaman) / sizeof(megaman[0]);
-    strcpy(category_choice_str, category_names[4]);
-    break;
-  case 6:
-    words = star_wars;
-    *num_words = sizeof(star_wars) / sizeof(star_wars[0]);
-    strcpy(category_choice_str, category_names[5]);
-    break;
-  case 7:
-    words = lord_of_the_rings;
-    *num_words = sizeof(lord_of_the_rings) / sizeof(lord_of_the_rings[0]);
-    strcpy(category_choice_str, category_names[6]);
-    break;
-  case 8:
-    words = colors;
-    *num_words = sizeof(colors) / sizeof(colors[0]);
-    strcpy(category_choice_str, category_names[7]);
-    break;
-  case 9:
-    words = jobs;
-    *num_words = sizeof(jobs) / sizeof(jobs[0]);
-    strcpy(category_choice_str, category_names[8]);
-    break;
-  case 10:
-    words = superheroes;
-    *num_words = sizeof(superheroes) / sizeof(superheroes[0]);
-    strcpy(category_choice_str, category_names[9]);
-    break;
-  default:
-    // Default to Bible Names for invalid input
-    printf("\nInvalid category. Defaulting to Bible Names.\n");
-    words = bible_names;
-    *num_words = sizeof(bible_names) / sizeof(bible_names[0]);
-    strcpy(category_choice_str, category_names[0]);
-    *category_choice = 1;
-    break;
+    *category_choice = atoi(input);
+    if (*category_choice < 1 || *category_choice > TOTAL_CATEGORIES)
+    {
+      printf("\nInvalid category. Defaulting to Bible Names.\n");
+      *category_choice = 1;
+    }
   }
+  words = all_categories[*category_choice - 1];
+  *num_words = category_sizes[*category_choice - 1];
+  strcpy(category_choice_str, category_names[*category_choice - 1]);
 }
 
 // Function to get custom word from Player 1 in two-player mode and return category name

@@ -82,9 +82,6 @@ const char *category_names[] = {
 #define TOTAL_CATEGORIES (sizeof(all_categories) / sizeof(all_categories[0]))
 #define TOTAL_WORDS 182 // Precalculated total words across all categories
 
-// Global pointer to the chosen category's word list
-const char **words = NULL;
-
 // Function to display the hangman state based on incorrect guesses
 void draw_hangman(int num_incorrect_guesses)
 {
@@ -199,10 +196,9 @@ void display_incorrect_letters(const char *guessed_letters, int num_guessed_lett
 }
 
 // Function to handle category selection and setup
-void select_category(int *category_choice, char *category_choice_str, int *num_words)
+const char **select_category(int *category_choice, char *category_choice_str, int *num_words)
 {
   printf("\nPlease choose a category. Enter the number of your choice...\n");
-  printf("\n");
   for (int i = 0; i < TOTAL_CATEGORIES; i++)
   {
     printf("%d. %s\n", i + 1, category_names[i]);
@@ -224,9 +220,9 @@ void select_category(int *category_choice, char *category_choice_str, int *num_w
       *category_choice = 1;
     }
   }
-  words = all_categories[*category_choice - 1];
   *num_words = category_sizes[*category_choice - 1];
   strcpy(category_choice_str, category_names[*category_choice - 1]);
+  return all_categories[*category_choice - 1];
 }
 
 // Function to get custom word from Player 1 in two-player mode and return category name
@@ -425,8 +421,8 @@ int main()
     if (game_mode == 1)
     {
       // Single-player mode: select category and random word
-      select_category(&category_choice, category_choice_str, &num_words);
-      strcpy(word, words[rand() % num_words]);
+      const char **selected_words = select_category(&category_choice, category_choice_str, &num_words);
+      strcpy(word, selected_words[rand() % num_words]);
       word_len = strlen(word);
     }
     else
