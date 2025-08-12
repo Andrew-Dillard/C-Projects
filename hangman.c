@@ -108,31 +108,16 @@ int get_validated_input(const char *prompt, char *input, size_t size, int (*chec
 // Displays the hangman ASCII art based on the number of incorrect guesses
 void draw_hangman(int num_incorrect_guesses)
 {
+  static const char *hangman_stages[] = {
+      "  _____\n  |   |\n      |\n      |\n      |\n      |\n========\n",
+      "  _____\n  |   |\n  O   |\n      |\n      |\n      |\n========\n",
+      "  _____\n  |   |\n  O   |\n  |   |\n      |\n      |\n========\n",
+      "  _____\n  |   |\n  O   |\n /|   |\n      |\n      |\n========\n",
+      "  _____\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n========\n",
+      "  _____\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n========\n",
+      "  _____\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========\n"};
   printf("Wrong guesses remaining: %d\n", MAX_NUM_INCORRECT_GUESSES - num_incorrect_guesses);
-  switch (num_incorrect_guesses)
-  {
-  case 0:
-    printf("  _____\n  |   |\n      |\n      |\n      |\n      |\n========\n");
-    break;
-  case 1:
-    printf("  _____\n  |   |\n  O   |\n      |\n      |\n      |\n========\n");
-    break;
-  case 2:
-    printf("  _____\n  |   |\n  O   |\n  |   |\n      |\n      |\n========\n");
-    break;
-  case 3:
-    printf("  _____\n  |   |\n  O   |\n /|   |\n      |\n      |\n========\n");
-    break;
-  case 4:
-    printf("  _____\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n========\n");
-    break;
-  case 5:
-    printf("  _____\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n========\n");
-    break;
-  case 6:
-    printf("  _____\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========\n");
-    break;
-  }
+  printf("%s", hangman_stages[num_incorrect_guesses]);
 }
 
 // Displays the current state of the word with spaces between letters
@@ -230,7 +215,7 @@ void get_custom_word(GameState *state)
     if (mode_choice == 1)
     {
       char prompt[256];
-      snprintf(prompt, sizeof(prompt), "Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
+      snprintf(prompt, sizeof(prompt), "Enter a custom word: ");
       if (!get_validated_input(prompt, input, sizeof(input), isalpha, 0) || strlen(input) >= MAX_WORD_LENGTH)
       {
         printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
@@ -270,7 +255,7 @@ void get_custom_word(GameState *state)
       strcpy(state->category_choice_str, category_names[category_indices[choice]]);
     }
     char prompt[256];
-    snprintf(prompt, sizeof(prompt), "\nConfirm your word selection:\nWord: %s\nEnter 'y' to confirm or 'n' to retry: ", input);
+    snprintf(prompt, sizeof(prompt), "Is this the word you want? %s (y/n): ", input);
     char confirm[256];
     if (!get_validated_input(prompt, confirm, sizeof(confirm), isalpha, 1))
     {
