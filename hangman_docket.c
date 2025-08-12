@@ -1,5 +1,4 @@
 // Hangman game implementation in C
-// A word-guessing game where players guess letters to complete a hidden word
 // Supports single-player (random word from category) and two-player (custom word) modes
 
 #include <stdio.h>
@@ -64,24 +63,17 @@ const char *category_names[] = {"Bible Names", "Animals", "Toys", "Plants", "Meg
 
 // --- Utility Functions ---
 
-// Validates a single-character input against a check function (e.g., isalpha, isdigit)
+// Validates input against a check function (e.g., isalpha, isdigit)
+// single_char: 1 for single-character, 0 for multi-character
 // Returns 1 if valid, 0 otherwise
-int validate_input(char *input, size_t size, int (*check)(int))
-{
-  input[strcspn(input, "\n")] = '\0';
-  if (strlen(input) != 1 || !check(input[0]))
-    return 0;
-  return 1;
-}
-
-// Validates a multi-character input (e.g., a word) against a check function
-// Returns 1 if all characters are valid, 0 if empty or any character fails
-int validate_multi_char_input(char *input, size_t size, int (*check)(int))
+int validate_input(char *input, size_t size, int (*check)(int), int single_char)
 {
   input[strcspn(input, "\n")] = '\0';
   if (input[0] == '\0')
     return 0;
-  for (int i = 0; input[i] != '\0'; i++)
+  if (single_char && strlen(input) != 1)
+    return 0;
+  for (int i = 0; input[i]; i++)
     if (!check(input[i]))
       return 0;
   return 1;
@@ -93,14 +85,7 @@ int get_validated_input(const char *prompt, char *input, size_t size, int (*chec
 {
   printf("%s", prompt);
   fgets(input, size, stdin);
-  if (single_char)
-  {
-    return validate_input(input, size, check);
-  }
-  else
-  {
-    return validate_multi_char_input(input, size, check);
-  }
+  return validate_input(input, size, check, single_char);
 }
 
 // --- Game Display Functions ---
