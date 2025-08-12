@@ -87,6 +87,22 @@ int validate_multi_char_input(char *input, size_t size, int (*check)(int))
   return 1;
 }
 
+// Parameters: prompt (text to display), input/size (buffer for input), check (validation function), single_char (1 for single-character, 0 for multi-character)
+// Returns 1 if input is valid, 0 otherwise
+int get_validated_input(const char *prompt, char *input, size_t size, int (*check)(int), int single_char)
+{
+  printf("%s", prompt);
+  fgets(input, size, stdin);
+  if (single_char)
+  {
+    return validate_input(input, size, check);
+  }
+  else
+  {
+    return validate_multi_char_input(input, size, check);
+  }
+}
+
 // --- Game Display Functions ---
 
 // Displays the hangman ASCII art based on the number of incorrect guesses
@@ -168,11 +184,9 @@ const char **select_category(GameState *state)
   {
     printf("%d. %s\n", i + 1, category_names[i]);
   }
-  printf("\n");
   char input[256];
-  fgets(input, sizeof(input), stdin);
   int category_choice = 1; // Default to Bible Names
-  if (!validate_input(input, sizeof(input), isdigit))
+  if (!get_validated_input("Enter a number (1-10): ", input, sizeof(input), isdigit, 1))
   {
     printf("\nInvalid category. Defaulting to Bible Names.\n");
   }
@@ -185,6 +199,7 @@ const char **select_category(GameState *state)
       category_choice = 1;
     }
   }
+
   state->num_words = category_sizes[category_choice - 1];
   strcpy(state->category_choice_str, category_names[category_choice - 1]);
   return all_categories[category_choice - 1];
@@ -199,13 +214,9 @@ void get_custom_word(GameState *state)
   while (!valid)
   {
     printf("\nPlayer 2, please look away while Player 1 selects the word.\n");
-    printf("Player 1, choose an option:\n");
-    printf("1. Enter a custom word\n");
-    printf("2. Choose from random suggestions\n");
-    printf("Enter 1 or 2: ");
     char mode_choice_input[256];
-    fgets(mode_choice_input, sizeof(mode_choice_input), stdin);
-    if (!validate_input(mode_choice_input, sizeof(mode_choice_input), isdigit))
+    if (!get_validated_input("\nChoose word selection method:\n1. Enter a custom word\n2. Choose from random suggestions\nEnter 1 or 2: ",
+                             mode_choice_input, sizeof(mode_choice_input), isdigit, 1))
     {
       printf("\nInvalid choice. Please enter 1 or 2.\n");
       continue;
@@ -218,11 +229,11 @@ void get_custom_word(GameState *state)
     }
     if (mode_choice == 1)
     {
-      printf("Enter a custom word: ");
-      fgets(input, sizeof(input), stdin);
-      if (!validate_multi_char_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
+      char prompt[256];
+      snprintf(prompt, sizeof(prompt), "Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
+      if (!get_validated_input(prompt, input, sizeof(input), isalpha, 0) || strlen(input) >= MAX_WORD_LENGTH)
       {
-        printf("\nInvalid word. Use letters only please\n");
+        printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
         continue;
       }
       for (int i = 0; input[i] != '\0'; i++)
@@ -243,10 +254,8 @@ void get_custom_word(GameState *state)
         category_indices[c] = c;
         printf("%d. %s\n", c + 1, suggested_words[c]);
       }
-      printf("Enter a number (1-10): ");
       char choice_input[256];
-      fgets(choice_input, sizeof(choice_input), stdin);
-      if (!validate_multi_char_input(choice_input, sizeof(choice_input), isdigit))
+      if (!get_validated_input("Enter a number (1-10): ", choice_input, sizeof(choice_input), isdigit, 0))
       {
         printf("\nInvalid choice. Please enter a number between 1 and 10.\n");
         continue;
@@ -260,10 +269,10 @@ void get_custom_word(GameState *state)
       strcpy(input, suggested_words[choice]);
       strcpy(state->category_choice_str, category_names[category_indices[choice]]);
     }
-    printf("\nYour word: %s\nIs this correct? (y/n): ", input);
+    char prompt[256];
+    snprintf(prompt, sizeof(prompt), "\nConfirm your word selection:\nWord: %s\nEnter 'y' to confirm or 'n' to retry: ", input);
     char confirm[256];
-    fgets(confirm, sizeof(confirm), stdin);
-    if (!validate_input(confirm, sizeof(confirm), isalpha))
+    if (!get_validated_input(prompt, confirm, sizeof(confirm), isalpha, 1))
     {
       printf("\nPlease select again.\n");
       continue;
@@ -298,10 +307,10 @@ void play_game(GameState *state)
     display_incorrect_letters(state);
     draw_hangman(state->num_incorrect_guesses);
     display_word_progress(state);
-    printf("\n%sGuess a letter: ", state->game_mode == 2 ? "Player 2, " : "");
     char input[256];
-    fgets(input, sizeof(input), stdin);
-    if (!validate_input(input, sizeof(input), isalpha))
+    char prompt[256];
+    snprintf(prompt, sizeof(prompt), "\n%sGuess a letter: ", state->game_mode == 2 ? "Player 2, " : "");
+    if (!get_validated_input(prompt, input, sizeof(input), isalpha, 1))
     {
       printf("\nInvalid input. Please enter a letter.\n");
       continue;
@@ -353,10 +362,10 @@ int main()
   while (tolower(play_again) == 'y')
   {
     GameState state = {0}; // Initialize all fields to zero
-    printf("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ");
     char mode_input[256];
-    fgets(mode_input, sizeof(mode_input), stdin);
-    if (!validate_input(mode_input, sizeof(mode_input), isdigit) || (mode_input[0] != '1' && mode_input[0] != '2'))
+    if (!get_validated_input("\nChoose game mode:\n1. Single Player\n2. Two Player\nEnter 1 or 2: ",
+                             mode_input, sizeof(mode_input), isdigit, 1) ||
+        (mode_input[0] != '1' && mode_input[0] != '2'))
     {
       printf("\nInvalid mode. Defaulting to Single Player.\n");
       state.game_mode = 1;
@@ -376,10 +385,8 @@ int main()
       get_custom_word(&state);
     }
     play_game(&state);
-    printf("Would you like to play again? (y/n): ");
     char input[256];
-    fgets(input, sizeof(input), stdin);
-    if (!validate_input(input, sizeof(input), isalpha))
+    if (!get_validated_input("Would you like to play again? (y/n): ", input, sizeof(input), isalpha, 1))
     {
       printf("\nInvalid input. Defaulting to no.\n");
       play_again = 'n';
