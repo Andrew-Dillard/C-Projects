@@ -10,15 +10,9 @@
 
 // --- Constants and Data ---
 
-// Maximum number of incorrect guesses allowed
 #define MAX_NUM_INCORRECT_GUESSES 6
-// Maximum length of a word (including null terminator)
-#define MAX_WORD_LENGTH 50
-// Total number of categories for word selection
+#define MAX_WORD_LENGTH 20
 #define TOTAL_CATEGORIES 10
-// Total number of words across all categories
-#define TOTAL_WORDS 182
-// Maximum length of category name
 #define MAX_CATEGORY_NAME 256
 
 // Clear screen command based on operating system
@@ -167,7 +161,7 @@ void display_incorrect_letters(const GameState *state)
 
 // Prompts the user to select a category and returns the word list
 // Sets category_choice and num_words, stores category name in state
-const char **select_category(int *category_choice, GameState *state)
+const char **select_category(GameState *state)
 {
   printf("\nPlease choose a category. Enter the number of your choice...\n");
   for (int i = 0; i < TOTAL_CATEGORIES; i++)
@@ -177,23 +171,23 @@ const char **select_category(int *category_choice, GameState *state)
   printf("\n");
   char input[256];
   fgets(input, sizeof(input), stdin);
+  int category_choice = 1; // Default to Bible Names
   if (!validate_input(input, sizeof(input), isdigit))
   {
     printf("\nInvalid category. Defaulting to Bible Names.\n");
-    *category_choice = 1;
   }
   else
   {
-    *category_choice = atoi(input);
-    if (*category_choice < 1 || *category_choice > TOTAL_CATEGORIES)
+    category_choice = atoi(input);
+    if (category_choice < 1 || category_choice > TOTAL_CATEGORIES)
     {
       printf("\nInvalid category. Defaulting to Bible Names.\n");
-      *category_choice = 1;
+      category_choice = 1;
     }
   }
-  state->num_words = category_sizes[*category_choice - 1];
-  strcpy(state->category_choice_str, category_names[*category_choice - 1]);
-  return all_categories[*category_choice - 1];
+  state->num_words = category_sizes[category_choice - 1];
+  strcpy(state->category_choice_str, category_names[category_choice - 1]);
+  return all_categories[category_choice - 1];
 }
 
 // Prompts Player 1 to input a custom word or select from random suggestions in two-player mode
@@ -205,7 +199,10 @@ void get_custom_word(GameState *state)
   while (!valid)
   {
     printf("\nPlayer 2, please look away while Player 1 selects the word.\n");
-    printf("Player 1, do you want to enter a custom word (1) or choose from 10 random suggestions (2)? ");
+    printf("Player 1, choose an option:\n");
+    printf("1. Enter a custom word\n");
+    printf("2. Choose from random suggestions\n");
+    printf("Enter 1 or 2: ");
     char mode_choice_input[256];
     fgets(mode_choice_input, sizeof(mode_choice_input), stdin);
     if (!validate_input(mode_choice_input, sizeof(mode_choice_input), isdigit))
@@ -221,11 +218,11 @@ void get_custom_word(GameState *state)
     }
     if (mode_choice == 1)
     {
-      printf("Enter a custom word (letters only, max %d characters): ", MAX_WORD_LENGTH - 1);
+      printf("Enter a custom word: ");
       fgets(input, sizeof(input), stdin);
       if (!validate_multi_char_input(input, sizeof(input), isalpha) || strlen(input) >= MAX_WORD_LENGTH)
       {
-        printf("\nInvalid word. Use letters only, max %d characters.\n", MAX_WORD_LENGTH - 1);
+        printf("\nInvalid word. Use letters only please\n");
         continue;
       }
       for (int i = 0; input[i] != '\0'; i++)
@@ -236,7 +233,7 @@ void get_custom_word(GameState *state)
     }
     else
     {
-      printf("Here are 10 random word suggestions:\n");
+      printf("\nChoose a word from the following suggestions:\n");
       char suggested_words[10][MAX_WORD_LENGTH];
       int category_indices[10];
       for (int c = 0; c < TOTAL_CATEGORIES; c++)
@@ -246,18 +243,18 @@ void get_custom_word(GameState *state)
         category_indices[c] = c;
         printf("%d. %s\n", c + 1, suggested_words[c]);
       }
-      printf("Choose a word by entering its number (1-10): ");
+      printf("Enter a number (1-10): ");
       char choice_input[256];
       fgets(choice_input, sizeof(choice_input), stdin);
-      if (!validate_input(choice_input, sizeof(choice_input), isdigit))
+      if (!validate_multi_char_input(choice_input, sizeof(choice_input), isdigit))
       {
-        printf("\nInvalid choice. Please try again.\n");
+        printf("\nInvalid choice. Please enter a number between 1 and 10.\n");
         continue;
       }
       int choice = atoi(choice_input) - 1;
       if (choice < 0 || choice >= 10)
       {
-        printf("\nInvalid choice. Please try again.\n");
+        printf("\nInvalid choice. Please enter a number between 1 and 10.\n");
         continue;
       }
       strcpy(input, suggested_words[choice]);
@@ -368,10 +365,9 @@ int main()
     {
       state.game_mode = atoi(mode_input);
     }
-    int category_choice = 0;
     if (state.game_mode == 1)
     {
-      const char **selected_words = select_category(&category_choice, &state);
+      const char **selected_words = select_category(&state);
       strcpy(state.word, selected_words[rand() % state.num_words]);
       state.word_len = strlen(state.word);
     }
